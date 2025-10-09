@@ -1,68 +1,44 @@
 import React, { useEffect, useState } from "react";
 import "../css/ProfileCard.css";
+import { useAuth } from "../context/AuthContext";
 import { FaUser } from "react-icons/fa";
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:5001";
 
 function ProfileCard() {
-  const [admin, setAdmin] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { admin, token, updateAdmin } = useAuth();
   const [showModal, setShowModal] = useState(false);
-
-  // Local form state
   const [formData, setFormData] = useState({
     full_name: "",
     department: "",
     email: "",
   });
 
+  // preload when admin info available
   useEffect(() => {
-    const fetchAdmin = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) return;
+    if (admin) setFormData(admin);
+  }, [admin]);
 
-        const res = await axios.get("/api/admins/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        setAdmin(res.data);
-        setFormData(res.data); // preload form with admin data
-      } catch (err) {
-        console.error("Error fetching admin:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAdmin();
-  }, []);
-
-  // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Save updated profile
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem("token");
       await axios.put(
-        `/api/admins/${admin.id}`, // assumes you have a PUT /api/admins/:id route
+        `http://localhost:5001/api/admins/${admin.id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setAdmin(formData); // update UI immediately
+      updateAdmin(formData);
       setShowModal(false);
     } catch (err) {
       console.error("Error updating admin:", err);
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!admin) return <p>No profile found</p>;
+  if (!admin) return <p>Loading...</p>;
 
   return (
     <>
@@ -70,9 +46,9 @@ function ProfileCard() {
       <div className="profile-card" onClick={() => setShowModal(true)}>
         <h3 className="profile-title">Profile</h3>
         <div className="profile-content">
-          {/* <div className="profile-avatar">
+          <div className="profile-avatar">
             <FaUser />
-          </div> */}
+          </div>
           <div className="profile-details">
             <div className="profile-item">
               <span className="profile-label">Name:</span>

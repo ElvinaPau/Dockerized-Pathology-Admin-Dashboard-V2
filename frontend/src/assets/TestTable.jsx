@@ -2,130 +2,14 @@ import React, { useState, useEffect } from "react";
 import "../css/TestTable.css";
 import { AiOutlineEdit } from "react-icons/ai";
 import { MdDeleteOutline } from "react-icons/md";
-
-const sampleTests = [
-  {
-    id: 1,
-    name: "Blood Test",
-    status: "recent",
-    updatedBy: "Dr. Smith",
-    updatedAt: "2025-08-27",
-  },
-  {
-    id: 2,
-    name: "Activated Partial Thromboplastin Time (APTT) Test",
-    status: "deleted",
-    updatedBy: "Nurse Irene Lee Zhi Xuan",
-    updatedAt: "2025-08-26",
-  },
-  {
-    id: 3,
-    name: "X-Ray",
-    status: "recent",
-    updatedBy: "Dr. John",
-    updatedAt: "2025-08-25",
-  },
-  {
-    id: 4,
-    name: "MRI",
-    status: "all",
-    updatedBy: "Dr. Amy",
-    updatedAt: "2025-08-24",
-  },
-  {
-    id: 5,
-    name: "Blood Test",
-    status: "recent",
-    updatedBy: "Dr. Smith",
-    updatedAt: "2025-08-27",
-  },
-  {
-    id: 6,
-    name: "Urine Test",
-    status: "deleted",
-    updatedBy: "Nurse Lee",
-    updatedAt: "2025-08-26",
-  },
-  {
-    id: 7,
-    name: "X-Ray",
-    status: "recent",
-    updatedBy: "Dr. John",
-    updatedAt: "2025-08-25",
-  },
-  {
-    id: 8,
-    name: "MRI",
-    status: "all",
-    updatedBy: "Dr. Amy",
-    updatedAt: "2025-08-24",
-  },
-  {
-    id: 9,
-    name: "Blood Test",
-    status: "recent",
-    updatedBy: "Dr. Smith",
-    updatedAt: "2025-08-27",
-  },
-  {
-    id: 10,
-    name: "Activated Partial Thromboplastin Time (APTT) Test",
-    status: "deleted",
-    updatedBy: "Nurse Irene Lee Zhi Xuan",
-    updatedAt: "2025-08-26",
-  },
-  {
-    id: 11,
-    name: "X-Ray",
-    status: "recent",
-    updatedBy: "Dr. John",
-    updatedAt: "2025-08-25",
-  },
-  {
-    id: 12,
-    name: "MRI",
-    status: "all",
-    updatedBy: "Dr. Amy",
-    updatedAt: "2025-08-24",
-  },
-  {
-    id: 13,
-    name: "Blood Test",
-    status: "recent",
-    updatedBy: "Dr. Smith",
-    updatedAt: "2025-08-27",
-  },
-  {
-    id: 14,
-    name: "Urine Test",
-    status: "deleted",
-    updatedBy: "Nurse Lee",
-    updatedAt: "2025-08-26",
-  },
-  {
-    id: 15,
-    name: "X-Ray",
-    status: "recent",
-    updatedBy: "Dr. John",
-    updatedAt: "2025-08-25",
-  },
-  {
-    id: 16,
-    name: "MRI",
-    status: "all",
-    updatedBy: "Dr. Amy",
-    updatedAt: "2025-08-24",
-  },
-];
+import { useNavigate, useParams } from "react-router-dom";
 
 const TestTable = () => {
+  const { id } = useParams(); // this is category ID
+  const navigate = useNavigate();
   const [tests, setTests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
-
-  useEffect(() => {
-    setTests(sampleTests);
-  }, []);
 
   // Count tests per status
   const getCount = (status) => {
@@ -164,7 +48,10 @@ const TestTable = () => {
             </button>
           ))}
         </div>
-        <button className="add-btn">
+        <button
+          className="add-btn"
+          onClick={() => navigate(`/categories/${id}/add`)}
+        >
           + Add Test / Tab
         </button>
       </div>

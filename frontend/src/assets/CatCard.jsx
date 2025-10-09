@@ -2,7 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import "../css/CatCard.css";
 import { IoMdMore } from "react-icons/io";
 
-function CatCard({ title, count, icon, lastUpdated, onClick }) {
+function CatCard({
+  title,
+  count,
+  icon,
+  lastUpdated,
+  onClick,
+  onAdd,
+  onDelete,
+}) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -14,9 +22,7 @@ function CatCard({ title, count, icon, lastUpdated, onClick }) {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -33,17 +39,34 @@ function CatCard({ title, count, icon, lastUpdated, onClick }) {
       <div
         className="more-icon"
         ref={dropdownRef}
-        onClick={(e) => e.stopPropagation()} // prevent triggering card click
+        onClick={(e) => e.stopPropagation()}
       >
         <IoMdMore
           onClick={() => setDropdownOpen(!dropdownOpen)}
           style={{ cursor: "pointer" }}
         />
+
         {dropdownOpen && (
           <div className="dropdown-menu">
-            <div className="dropdown-item">Edit</div>
-            <div className="dropdown-item">Add New Test/ Tab</div>
-            <div className="dropdown-item">Delete</div>
+            <div
+              className="dropdown-item"
+              onClick={() => {
+                setDropdownOpen(false);
+                onAdd?.();
+              }}
+            >
+              Add New Test/Tab
+            </div>
+
+            <div
+              className="dropdown-item"
+              onClick={() => {
+                setDropdownOpen(false);
+                onDelete?.();
+              }}
+            >
+              Delete
+            </div>
           </div>
         )}
       </div>

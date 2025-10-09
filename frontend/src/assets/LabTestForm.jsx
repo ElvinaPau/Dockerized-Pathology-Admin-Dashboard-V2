@@ -103,7 +103,7 @@ function LabTestForm({ onRemove, isFirst }) {
             </select>
           </div>
           <div>
-            <label>Remark</label>
+            <label style={{ fontWeight:600}}>Remark</label>
             <RichTextEditor />
           </div>
         </div>

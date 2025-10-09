@@ -81,6 +81,11 @@ export function AuthProvider({ children }) {
     setAdmin(null);
   };
 
+  // Update global admin data
+  const updateAdmin = (updatedData) => {
+    setAdmin((prev) => ({ ...prev, ...updatedData }));
+  };
+
   // ========================
   // Auto refresh every 55 minutes (before 1h token expires)
   // ========================
@@ -108,7 +113,9 @@ export function AuthProvider({ children }) {
   }, [token]);
 
   return (
-    <AuthContext.Provider value={{ admin, token, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ admin, token, login, logout, loading, updateAdmin }}
+    >
       {children}
     </AuthContext.Provider>
   );
