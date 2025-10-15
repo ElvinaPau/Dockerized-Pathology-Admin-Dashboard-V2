@@ -140,7 +140,7 @@ router.get("/:id", async (req, res) => {
         [id]
       );
       test.infos = infosResult.rows;
-      test.infoTypes = [...new Set(infosResult.rows.map(info => info.type))];
+      test.infoTypes = [...new Set(infosResult.rows.map((info) => info.type))];
     }
 
     res.json(test);
@@ -172,6 +172,78 @@ router.delete("/:id", async (req, res) => {
     await client.query("ROLLBACK");
     console.error("Error deleting test:", err);
     res.status(500).json({ error: "Failed to delete test" });
+  } finally {
+    client.release();
+  }
+});
+
+// Recover a soft-deleted test
+router.put("/:id/recover", authenticate, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const updated_by = req.user.full_name; // from JWT
+
+    await client.query("BEGIN");
+
+    // Recover test
+    const result = await client.query(
+      `UPDATE tests 
+       SET status = 'active', updated_by = $1, updated_at = NOW() 
+       WHERE id = $2 AND status = 'deleted'
+       RETURNING id`,
+      [updated_by, id]
+    );
+
+    if (result.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Test not found or not deleted" });
+    }
+
+    // Recover related infos
+    await client.query(
+      `UPDATE test_infos 
+       SET status = 'active' 
+       WHERE test_id = $1 AND status = 'deleted'`,
+      [id]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Test and infos recovered successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error recovering test:", err);
+    res.status(500).json({ error: "Failed to recover test" });
+  } finally {
+    client.release();
+  }
+});
+
+// Permanently delete a test and its infos
+router.delete("/:id/permanent", authenticate, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+
+    await client.query("BEGIN");
+
+    // Delete test_infos first (foreign key constraint)
+    await client.query(`DELETE FROM test_infos WHERE test_id = $1`, [id]);
+
+    // Delete the test
+    const result = await client.query(`DELETE FROM tests WHERE id = $1`, [id]);
+
+    if (result.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Test not found" });
+    }
+
+    await client.query("COMMIT");
+    res.json({ message: "Test and infos permanently deleted" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error permanently deleting test:", err);
+    res.status(500).json({ error: "Failed to permanently delete test" });
   } finally {
     client.release();
   }

@@ -129,6 +129,26 @@ tbody tr:hover {
   color: darkred;
 }
 
+.icon-recover {
+  color: green;
+  cursor: pointer;
+  font-size: 20px; /* optional */
+}
+
+.icon-permanent-delete {
+  color: red;
+  cursor: pointer;
+  font-size: 20px; /* optional */
+}
+
+.icon-recover:hover {
+  color: darkgreen; /* hover effect */
+}
+
+.icon-permanent-delete:hover {
+  color: darkred;
+}
+
 /* No results row */
 table tbody tr td[colspan="5"] {
   text-align: center;

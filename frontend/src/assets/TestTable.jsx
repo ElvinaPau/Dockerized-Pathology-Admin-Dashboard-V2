@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../css/TestTable.css";
 import { AiOutlineEdit } from "react-icons/ai";
-import { MdDeleteOutline } from "react-icons/md";
+import { MdDeleteOutline, MdRestore, MdDeleteForever } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 
 const TestTable = () => {
@@ -32,12 +32,10 @@ const TestTable = () => {
         console.error("Error fetching tests:", err);
       }
     };
-
     fetchTests();
   }, [id]);
 
   // Count tests per status
-
   const getCount = (status) => {
     if (status === "all")
       return tests.filter((t) => t.status !== "deleted").length;
@@ -50,29 +48,50 @@ const TestTable = () => {
     return 0;
   };
 
+  // Filter tests by tab and search
   const filteredTests = tests.filter((test) => {
     const matchesTab =
       activeTab === "all"
-        ? test.status !== "deleted" // exclude deleted
+        ? test.status !== "deleted"
         : activeTab === "recent"
-        ? test.status !== "deleted" && isRecent(test.updatedAt) // recent and not deleted
-        : test.status === "deleted"; // deleted tab
-
+        ? test.status !== "deleted" && isRecent(test.updatedAt)
+        : test.status === "deleted";
     const matchesSearch = test.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
-
     return matchesTab && matchesSearch;
   });
 
-  const handleDelete = async (id) => {
+  // --- Actions ---
+  const handleSoftDelete = async (id) => {
     try {
-      // Call backend to delete
       await axios.delete(`http://localhost:5001/api/tests/${id}`);
-      // Update local state
-      setTests((prev) => prev.filter((t) => t.id !== id));
+      setTests((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, status: "deleted" } : t))
+      );
     } catch (err) {
       console.error("Error deleting test:", err);
+    }
+  };
+
+  const handleRecover = async (id) => {
+    try {
+      await axios.put(`http://localhost:5001/api/tests/${id}/recover`);
+      setTests((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, status: "active" } : t))
+      );
+    } catch (err) {
+      console.error("Error recovering test:", err);
+    }
+  };
+
+  const handlePermanentDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to permanently delete this test?")) return;
+    try {
+      await axios.delete(`http://localhost:5001/api/tests/${id}/permanent`);
+      setTests((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      console.error("Error permanently deleting test:", err);
     }
   };
 
@@ -91,8 +110,7 @@ const TestTable = () => {
               className={activeTab === status ? "active" : ""}
               onClick={() => setActiveTab(status)}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)} (
-              {getCount(status)})
+              {status.charAt(0).toUpperCase() + status.slice(1)} ({getCount(status)})
             </button>
           ))}
         </div>
@@ -116,11 +134,11 @@ const TestTable = () => {
       <div className="table-scroll">
         <table>
           <colgroup>
-            <col style={{ width: "5%" }} /> {/* No */}
-            <col style={{ width: "35%" }} /> {/* Test Name */}
-            <col style={{ width: "30%" }} /> {/* Last Updated By */}
-            <col style={{ width: "20%" }} /> {/* Last Updated At */}
-            <col style={{ width: "10%" }} /> {/* Actions */}
+            <col style={{ width: "5%" }} />
+            <col style={{ width: "35%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "10%" }} />
           </colgroup>
           <thead>
             <tr>
@@ -140,14 +158,33 @@ const TestTable = () => {
                 <td>{test.updatedAt}</td>
                 <td>
                   <div className="action-icons">
-                    <AiOutlineEdit
-                      className="icon-edit"
-                      onClick={() => handleEdit(test.id)}
-                    />
-                    <MdDeleteOutline
-                      className="icon-delete"
-                      onClick={() => handleDelete(test.id)}
-                    />
+                    {test.status === "deleted" ? (
+                      <>
+                        <MdRestore
+                          className="icon-recover"
+                          title="Recover"
+                          onClick={() => handleRecover(test.id)}
+                        />
+                        <MdDeleteForever
+                          className="icon-permanent-delete"
+                          title="Permanently Delete"
+                          onClick={() => handlePermanentDelete(test.id)}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <AiOutlineEdit
+                          className="icon-edit"
+                          title="Edit"
+                          onClick={() => handleEdit(test.id)}
+                        />
+                        <MdDeleteOutline
+                          className="icon-delete"
+                          title="Soft Delete"
+                          onClick={() => handleSoftDelete(test.id)}
+                        />
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
