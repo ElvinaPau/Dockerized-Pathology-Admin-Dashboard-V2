@@ -1,45 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/BasicForm.css";
 import RichTextEditor from "./RichTextEditor";
 import { IoIosRemoveCircleOutline, IoIosRemoveCircle } from "react-icons/io";
 
-function BasicForm({ index, infos = [], setInfos, onRemove, isFirst }) {
+function BasicForm({ fields = {}, setFields, onRemove, isFirst }) {
   const [formData, setFormData] = useState({
-    title: infos[index]?.fields?.title || "",
-    description: infos[index]?.fields?.description || "",
+    title: fields.title || "",
+    description: fields.description || "",
   });
 
-  const [isHover, setIsHover] = useState(false);
+  useEffect(() => {
+    // sync when parent changes (e.g., when editing existing data)
+    setFormData({
+      title: fields.title || "",
+      description: fields.description || "",
+    });
+  }, [fields]);
 
   const handleChange = (key, value) => {
     const updated = { ...formData, [key]: value };
     setFormData(updated);
-
-    // Update only this index in the parent infos array
-    setInfos((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], fields: updated }; // keep consistent structure
-      return copy;
-    });
+    setFields(updated); // send data to parent
   };
 
   return (
     <div className="add-form-container">
       <div className="form-header">
         <h2>Basic</h2>
-
-        {/* Remove button (disabled for the first form) */}
         {!isFirst && (
           <button
             onClick={onRemove}
-            onMouseEnter={() => setIsHover(true)}
-            onMouseLeave={() => setIsHover(false)}
+            onMouseEnter={(e) => e.currentTarget.classList.add("hover")}
+            onMouseLeave={(e) => e.currentTarget.classList.remove("hover")}
           >
-            {isHover ? (
-              <IoIosRemoveCircle size={22} />
-            ) : (
-              <IoIosRemoveCircleOutline size={22} />
-            )}
+            <IoIosRemoveCircleOutline size={22} />
           </button>
         )}
       </div>

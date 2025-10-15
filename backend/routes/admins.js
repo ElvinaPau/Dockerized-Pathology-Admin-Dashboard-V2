@@ -242,7 +242,7 @@ router.post("/refresh", (req, res) => {
         .json({ error: "Invalid or expired refresh token" });
 
     const newAccessToken = jwt.sign(
-      { id: decoded.id, email: decoded.email },
+      { id: decoded.id, email: decoded.email, full_name: decoded.full_name },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1h" }
     );

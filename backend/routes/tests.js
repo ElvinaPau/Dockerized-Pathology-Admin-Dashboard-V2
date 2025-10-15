@@ -177,48 +177,6 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Recover a soft-deleted test
-router.put("/:id/recover", authenticate, async (req, res) => {
-  const client = await pool.connect();
-  try {
-    const { id } = req.params;
-    const updated_by = req.user.full_name; // from JWT
-
-    await client.query("BEGIN");
-
-    // Recover test
-    const result = await client.query(
-      `UPDATE tests 
-       SET status = 'active', updated_by = $1, updated_at = NOW() 
-       WHERE id = $2 AND status = 'deleted'
-       RETURNING id`,
-      [updated_by, id]
-    );
-
-    if (result.rowCount === 0) {
-      await client.query("ROLLBACK");
-      return res.status(404).json({ error: "Test not found or not deleted" });
-    }
-
-    // Recover related infos
-    await client.query(
-      `UPDATE test_infos 
-       SET status = 'active' 
-       WHERE test_id = $1 AND status = 'deleted'`,
-      [id]
-    );
-
-    await client.query("COMMIT");
-    res.json({ message: "Test and infos recovered successfully" });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error recovering test:", err);
-    res.status(500).json({ error: "Failed to recover test" });
-  } finally {
-    client.release();
-  }
-});
-
 // Permanently delete a test and its infos
 router.delete("/:id/permanent", authenticate, async (req, res) => {
   const client = await pool.connect();
@@ -249,17 +207,18 @@ router.delete("/:id/permanent", authenticate, async (req, res) => {
   }
 });
 
-// Add PUT endpoint
+// Update test and its infos (replace existing infos)
 router.put("/:id", authenticate, async (req, res) => {
   const client = await pool.connect();
   try {
     const { id } = req.params;
-    const { name, category_id, status } = req.body;
+    const { name, category_id, status, infos } = req.body;
     const updated_by = req.user.full_name; // from JWT
 
     await client.query("BEGIN");
 
-    const result = await client.query(
+    // 1. Update the test itself
+    const testResult = await client.query(
       `
       UPDATE tests
       SET
@@ -274,13 +233,42 @@ router.put("/:id", authenticate, async (req, res) => {
       [name, category_id, updated_by, status, id]
     );
 
-    if (result.rowCount === 0) {
+    if (testResult.rowCount === 0) {
       await client.query("ROLLBACK");
       return res.status(404).json({ error: "Test not found" });
     }
 
+    // 2. Handle infos update if provided
+    if (Array.isArray(infos)) {
+      // Delete all existing test_infos for this test
+      await client.query(`DELETE FROM test_infos WHERE test_id = $1`, [id]);
+
+      // Insert the new infos
+      if (infos.length > 0) {
+        const insertInfoQuery = `
+          INSERT INTO test_infos 
+            (test_id, type, title, description, image_url, extra_data, status)
+          VALUES ($1, $2, $3, $4, $5, $6, 'active')
+        `;
+
+        for (const info of infos) {
+          await client.query(insertInfoQuery, [
+            id,
+            info.type || "Basic",
+            info.title || "",
+            info.description || "",
+            info.image_url || null,
+            info.extra_data || null,
+          ]);
+        }
+      }
+    }
+
     await client.query("COMMIT");
-    res.json({ message: "Test updated successfully", test: result.rows[0] });
+    res.json({
+      message: "Test and infos updated successfully",
+      test: testResult.rows[0],
+    });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Error updating test:", err);

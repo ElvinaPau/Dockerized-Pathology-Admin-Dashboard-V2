@@ -1,27 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../css/ContainerForm.css";
 import RichTextEditor from "./RichTextEditor";
 import { IoIosRemoveCircleOutline, IoIosRemoveCircle } from "react-icons/io";
 import { ImageUploader } from "./ImageUploader";
 
-function ContainerForm({ index, infos = [], setInfos, onRemove, isFirst }) {
+function ContainerForm({ fields = {}, setFields, onRemove, isFirst }) {
   const [formData, setFormData] = useState({
-    title: infos[index]?.fields?.title || "",
-    description: infos[index]?.fields?.description || "",
-    image: infos[index]?.fields?.image || null,
+    title: fields.title || "",
+    description: fields.description || "",
+    image: fields.image || null,
   });
 
   const [isHover, setIsHover] = useState(false);
 
+  useEffect(() => {
+    // Sync when parent changes (e.g., when editing existing data)
+    setFormData({
+      title: fields.title || "",
+      description: fields.description || "",
+      image: fields.image || null,
+    });
+  }, [fields]);
+
   const handleChange = (key, value) => {
     const updated = { ...formData, [key]: value };
     setFormData(updated);
-
-    setInfos((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], fields: updated };
-      return copy;
-    });
+    setFields(updated); // Send data to parent
   };
 
   return (

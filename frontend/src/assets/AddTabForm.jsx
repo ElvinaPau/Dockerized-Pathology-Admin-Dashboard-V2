@@ -163,15 +163,46 @@ function AddTabForm() {
       const payload = {
         name: formData.name,
         category_id: id,
-        updated_by: currentUser?.username || "Admin",
+        updated_by: currentUser?.username || currentUser?.full_name || "Admin",
         status: "recent",
-        infos: formData.infos.map((group) => ({
-          type: group.type || formData.infoType,
-          title: group.fields?.title || "",
-          description: group.fields?.description || "",
-          image_url: group.fields?.image || null,
-          extra_data: group.fields || null,
-        })),
+        infos: formData.infos.map((group, index) => {
+          // Determine the actual type for this form
+          const actualType =
+            index === 0
+              ? group.type || formData.infoType // First form: use selected info type
+              : "Basic"; // Additional forms: always Basic
+
+          // Extract title and description based on form type
+          let title = "";
+          let description = "";
+          let imageUrl = null;
+
+          if (actualType === "Basic") {
+            // Basic form has title and description fields
+            title = group.fields?.title || "";
+            description = group.fields?.description || "";
+            imageUrl = group.fields?.image || null;
+          } else if (actualType === "Lab Test") {
+            // Lab Test: no title/description fields, leave empty
+            // All data is in extra_data
+            title = "";
+            description = "";
+            imageUrl = group.fields?.containerImage || null;
+          } else if (actualType === "Container") {
+            // Container has title and description fields
+            title = group.fields?.title || "";
+            description = group.fields?.description || "";
+            imageUrl = group.fields?.image || null;
+          }
+
+          return {
+            type: actualType,
+            title: title,
+            description: description,
+            image_url: imageUrl,
+            extra_data: group.fields || null,
+          };
+        }),
       };
 
       if (testId) {
@@ -280,8 +311,8 @@ function AddTabForm() {
                             className="draggable-form fixed-first"
                           >
                             <FormComponent
-                              infos={group.fields}
-                              setInfos={(updated) => {
+                              fields={group.fields}
+                              setFields={(updated) => {
                                 setFormData((prev) => {
                                   const newinfos = prev.infos.map((b, i) =>
                                     i === index ? { ...b, fields: updated } : b
@@ -289,7 +320,8 @@ function AddTabForm() {
                                   return { ...prev, infos: newinfos };
                                 });
                               }}
-                              isFirst
+                              onRemove={null} // main form cannot be removed
+                              isFirst={index === 0}
                             />
                           </div>
                         );
@@ -316,8 +348,8 @@ function AddTabForm() {
                               className="draggable-form"
                             >
                               <FormComponent
-                                infos={group.fields}
-                                setInfos={(updated) => {
+                                fields={group.fields}
+                                setFields={(updated) => {
                                   setFormData((prev) => {
                                     const newinfos = prev.infos.map((b, i) =>
                                       i === index

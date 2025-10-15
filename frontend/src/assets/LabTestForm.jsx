@@ -4,30 +4,42 @@ import RichTextEditor from "./RichTextEditor";
 import { IoIosRemoveCircleOutline, IoIosRemoveCircle } from "react-icons/io";
 import { ImageUploader } from "./ImageUploader";
 
-function LabTestForm({ index, infos = [], setInfos, onRemove, isFirst }) {
+function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
   const [formData, setFormData] = useState({
-    labInCharge: infos[index]?.fields?.labInCharge || "",
-    specimenType: infos[index]?.fields?.specimenType || "",
-    form: infos[index]?.fields?.form || "",
-    TAT: infos[index]?.fields?.TAT || "",
-    containerLabel: infos[index]?.fields?.containerLabel || "",
-    sampleVolume: infos[index]?.fields?.sampleVolume || "",
-    remark: infos[index]?.fields?.remark || "",
-    containerImage: infos[index]?.fields?.containerImage || null,
+    title: fields.title || "",
+    description: fields.description || "",
+    labInCharge: fields.labInCharge || "",
+    specimenType: fields.specimenType || "",
+    form: fields.form || "",
+    TAT: fields.TAT || "",
+    containerLabel: fields.containerLabel || "",
+    sampleVolume: fields.sampleVolume || "",
+    remark: fields.remark || "",
+    containerImage: fields.containerImage || null,
   });
 
   const [isHover, setIsHover] = useState(false);
 
+  useEffect(() => {
+    // Sync when parent changes (e.g., when editing existing data)
+    setFormData({
+      title: fields.title || "",
+      description: fields.description || "",
+      labInCharge: fields.labInCharge || "",
+      specimenType: fields.specimenType || "",
+      form: fields.form || "",
+      TAT: fields.TAT || "",
+      containerLabel: fields.containerLabel || "",
+      sampleVolume: fields.sampleVolume || "",
+      remark: fields.remark || "",
+      containerImage: fields.containerImage || null,
+    });
+  }, [fields]);
+
   const handleChange = (key, value) => {
     const updated = { ...formData, [key]: value };
     setFormData(updated);
-
-    // Update parent infos array at this index
-    setInfos((prev) => {
-      const copy = [...prev];
-      copy[index] = { ...copy[index], fields: updated };
-      return copy;
-    });
+    setFields(updated); // Send data to parent
   };
 
   return (
@@ -52,6 +64,15 @@ function LabTestForm({ index, infos = [], setInfos, onRemove, isFirst }) {
 
       <div className="container">
         <div className="left">
+          <div className="add-form-group">
+            <label>Title</label>
+            <input
+              type="text"
+              value={formData.title}
+              onChange={(e) => handleChange("title", e.target.value)}
+            />
+          </div>
+
           <div className="side-by-side">
             <div className="add-form-group">
               <label>Lab in-charge</label>
@@ -113,6 +134,14 @@ function LabTestForm({ index, infos = [], setInfos, onRemove, isFirst }) {
               <option value="blood">Blood</option>
               <option value="urine">Urine</option>
             </select>
+          </div>
+
+          <div>
+            <label style={{ fontWeight: 600 }}>Description</label>
+            <RichTextEditor
+              value={formData.description}
+              onChange={(val) => handleChange("description", val)}
+            />
           </div>
 
           <div>
