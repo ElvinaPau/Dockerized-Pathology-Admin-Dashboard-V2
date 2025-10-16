@@ -20,8 +20,9 @@ router.post("/", authenticate, async (req, res) => {
 
     const testResult = await client.query(
       `
-      INSERT INTO tests (name, category_id, updated_by, status, updated_at)
-      VALUES ($1, $2, $3, $4, NOW())
+      INSERT INTO tests (name, category_id, updated_by, status, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
+
       RETURNING id
       `,
       [name, category_id, updated_by, status || "recent"]
@@ -72,6 +73,7 @@ router.get("/", async (req, res) => {
         category_id AS "categoryId",
         updated_by AS "updatedBy",
         TO_CHAR(updated_at, 'YYYY-MM-DD HH24:MI:SS') AS "updatedAt",
+        TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') AS "createdAt",
         status
       FROM tests
       WHERE 1=1
@@ -83,7 +85,7 @@ router.get("/", async (req, res) => {
       query += ` AND category_id = $1`;
     }
 
-    query += " ORDER BY updated_at DESC";
+    query += " ORDER BY created_at ASC";
 
     const result = await pool.query(query, values);
     res.json(result.rows);
@@ -275,6 +277,77 @@ router.put("/:id", authenticate, async (req, res) => {
     res.status(500).json({ error: "Failed to update test" });
   } finally {
     client.release();
+  }
+});
+
+// Recover a soft-deleted test
+router.put("/:id/recover", authenticate, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const updated_by = req.user.full_name; // from JWT
+
+    await client.query("BEGIN");
+
+    // Recover the test
+    const testResult = await client.query(
+      `
+      UPDATE tests
+      SET status = 'active',
+          updated_by = $1,
+          updated_at = NOW()
+      WHERE id = $2 AND status = 'deleted'
+      RETURNING *
+      `,
+      [updated_by, id]
+    );
+
+    if (testResult.rowCount === 0) {
+      await client.query("ROLLBACK");
+      return res.status(404).json({ error: "Test not found or not deleted" });
+    }
+
+    // Recover all its test_infos too
+    await client.query(
+      `
+      UPDATE test_infos
+      SET status = 'active'
+      WHERE test_id = $1 AND status = 'deleted'
+      `,
+      [id]
+    );
+
+    await client.query("COMMIT");
+    res.json({ message: "Test and infos recovered successfully" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error recovering test:", err);
+    res.status(500).json({ error: "Failed to recover test" });
+  } finally {
+    client.release();
+  }
+});
+
+// Get total tests count + last updated date
+router.get("/stats/summary", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(*) AS total_tests,
+        TO_CHAR(MAX(updated_at), 'YYYY-MM-DD HH24:MI:SS') AS last_updated
+      FROM tests
+      WHERE status != 'deleted'
+    `);
+
+    const stats = {
+      totalTests: parseInt(result.rows[0].total_tests, 10) || 0,
+      lastUpdated: result.rows[0].last_updated || null,
+    };
+
+    res.json(stats);
+  } catch (err) {
+    console.error("Error fetching test stats:", err);
+    res.status(500).json({ error: "Failed to fetch test stats" });
   }
 });
 

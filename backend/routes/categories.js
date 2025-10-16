@@ -86,7 +86,7 @@ router.get("/:id", async (req, res) => {
 
 // Add new category
 router.post("/", async (req, res) => {
-  const { name } = req.body;
+  const { name, position } = req.body;
   if (!name || !name.trim())
     return res.status(400).json({ error: "Category name is required" });
 
@@ -99,10 +99,18 @@ router.post("/", async (req, res) => {
     if (duplicateCheck.rows.length > 0)
       return res.status(400).json({ error: "Category already exists" });
 
-    const result = await pool.query(
-      "INSERT INTO categories (name) VALUES ($1) RETURNING *",
-      [name.trim()]
+    // Get the current highest position
+    const maxResult = await pool.query(
+      "SELECT COALESCE(MAX(position), -1) AS max_position FROM categories"
     );
+    const nextPosition = (maxResult.rows[0].max_position ?? -1) + 1;
+
+    // Insert new category with the next position
+    const result = await pool.query(
+      "INSERT INTO categories (name, position) VALUES ($1, $2) RETURNING *",
+      [name.trim(), nextPosition]
+    );
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error("Error adding category:", err.message);

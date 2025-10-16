@@ -21,17 +21,18 @@ const TestTable = () => {
   };
 
   // Fetch tests from backend
+
+  const fetchTests = async () => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5001/api/tests?category_id=${id}`
+      );
+      setTests(res.data);
+    } catch (err) {
+      console.error("Error fetching tests:", err);
+    }
+  };
   useEffect(() => {
-    const fetchTests = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:5001/api/tests?category_id=${id}`
-        );
-        setTests(res.data);
-      } catch (err) {
-        console.error("Error fetching tests:", err);
-      }
-    };
     fetchTests();
   }, [id]);
 
@@ -66,9 +67,7 @@ const TestTable = () => {
   const handleSoftDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5001/api/tests/${id}`);
-      setTests((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: "deleted" } : t))
-      );
+      await fetchTests();
     } catch (err) {
       console.error("Error deleting test:", err);
     }
@@ -77,16 +76,17 @@ const TestTable = () => {
   const handleRecover = async (id) => {
     try {
       await axios.put(`http://localhost:5001/api/tests/${id}/recover`);
-      setTests((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: "active" } : t))
-      );
+      await fetchTests();
     } catch (err) {
       console.error("Error recovering test:", err);
     }
   };
 
   const handlePermanentDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this test?")) return;
+    if (
+      !window.confirm("Are you sure you want to permanently delete this test?")
+    )
+      return;
     try {
       await axios.delete(`http://localhost:5001/api/tests/${id}/permanent`);
       setTests((prev) => prev.filter((t) => t.id !== id));
@@ -110,7 +110,8 @@ const TestTable = () => {
               className={activeTab === status ? "active" : ""}
               onClick={() => setActiveTab(status)}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)} ({getCount(status)})
+              {status.charAt(0).toUpperCase() + status.slice(1)} (
+              {getCount(status)})
             </button>
           ))}
         </div>

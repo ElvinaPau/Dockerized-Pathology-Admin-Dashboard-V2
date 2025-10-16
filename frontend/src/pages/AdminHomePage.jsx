@@ -20,6 +20,29 @@ function AdminHomePage() {
   const [newCategoryName, setNewCategoryName] = useState("");
   const [adminCount, setAdminCount] = useState(0);
   const [categories, setCategories] = useState([]);
+  const [testStats, setTestStats] = useState({
+    totalTests: 0,
+    lastUpdated: "N/A",
+  });
+
+  useEffect(() => {
+    const fetchTestStats = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:5001/api/tests/stats/summary"
+        );
+        setTestStats({
+          totalTests: res.data.totalTests,
+          lastUpdated: res.data.lastUpdated
+            ? new Date(res.data.lastUpdated).toLocaleDateString()
+            : "N/A",
+        });
+      } catch (err) {
+        console.error("Error fetching test stats:", err.message);
+      }
+    };
+    fetchTestStats();
+  }, []);
 
   // Fetch categories
   useEffect(() => {
@@ -51,22 +74,21 @@ function AdminHomePage() {
     fetchCount();
   }, []);
 
-  // Add category
   const handleSubmit = async () => {
     if (!newCategoryName.trim()) return;
 
     try {
-      const res = await axios.post("http://localhost:5001/api/categories", {
+      await axios.post("http://localhost:5001/api/categories", {
         name: newCategoryName,
       });
 
-      const newCat = {
-      ...res.data,
-      testCount: 0,
-      lastUpdated: new Date().toLocaleDateString(),
-      };
+      // Re-fetch updated category list to get correct order
+      const res = await axios.get("http://localhost:5001/api/categories");
+      const sorted = res.data.sort(
+        (a, b) => (a.position ?? a.id) - (b.position ?? b.id)
+      );
+      setCategories(sorted);
 
-      setCategories([...categories, newCat]);
       setNewCategoryName("");
       setShowInput(false);
     } catch (err) {
@@ -121,9 +143,9 @@ function AdminHomePage() {
       <div className="overview-section">
         <StatCard
           title="Total Tests"
-          count={128}
+          count={testStats.totalTests}
           icon={<GrDocumentTest />}
-          lastUpdated="1 Jan 2025"
+          lastUpdated={testStats.lastUpdated}
         />
         <StatCard
           title="Total Admin"
@@ -167,7 +189,9 @@ function AdminHomePage() {
                         title={cat.name}
                         count={cat.testCount}
                         icon={<GrTest />}
-                        lastUpdated={cat.lastUpdated || "N/A"}
+                        lastUpdated={
+                          cat.lastUpdated || new Date().toLocaleDateString()
+                        }
                         onClick={() => navigate(`/categories/${cat.id}`)}
                         onDelete={() => handleDeleteCategory(cat.id)}
                       />
