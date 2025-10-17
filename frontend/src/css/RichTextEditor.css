@@ -27,3 +27,8 @@
   height: auto;
   margin: 10px 0;
 }
+
+.editor-container ol li::marker {
+  font-size: 1.2em;
+  color: #000;
+}

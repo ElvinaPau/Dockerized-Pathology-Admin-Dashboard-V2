@@ -48,6 +48,10 @@ function PrevTestsPage() {
     <div className={`home-page-content ${isNavExpanded ? "Nav-Expanded" : ""}`}>
       <HomePageHeader />
 
+      <button className="back-btn" onClick={() => navigate("/preview")}>
+        ← Back
+      </button>
+
       <div className="prev-page-title">{categoryName}</div>
 
       <div className="prev-categories-list">
@@ -55,7 +59,7 @@ function PrevTestsPage() {
           <div
             key={test.id}
             className="prev-category-card"
-            onClick={() => navigate(`/tests/${test.id}`)}
+            onClick={() => navigate(`/testinfos/${test.id}`)}
           >
             <h4 className="prev-category-title">{test.name}</h4>
           </div>

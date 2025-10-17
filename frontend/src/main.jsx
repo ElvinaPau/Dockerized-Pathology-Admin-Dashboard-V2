@@ -19,6 +19,7 @@ import AdminReq from "./pages/AdminReq";
 import { AuthProvider } from "./context/AuthContext";
 import CategoryDetails from "./assets/CategoryDetails";
 import AdminPreviewPage from "./pages/AdminPreviewPage";
+import PrevTestInfoPage from "./pages/PrevTestInfoPage";
 import PrevTestsPage from "./pages/PrevTestsPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -52,6 +53,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             />
             <Route path="/preview" element={<AdminPreviewPage />} />
             <Route path="/prevtests/:id" element={<PrevTestsPage />} />
+            <Route path="/testinfos/:id" element={<PrevTestInfoPage />} />
           </Routes>
         </NavigationProvider>
       </AuthProvider>

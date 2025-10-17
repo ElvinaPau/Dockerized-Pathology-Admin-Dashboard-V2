@@ -214,8 +214,6 @@ function AddTabForm() {
         await axios.post("http://localhost:5001/api/tests", payload);
         alert("Test created successfully!");
       }
-
-      navigate(`/categories/${id}`);
     } catch (err) {
       console.error("Error saving test:", err);
       alert("Failed to save test. Check console for details.");
