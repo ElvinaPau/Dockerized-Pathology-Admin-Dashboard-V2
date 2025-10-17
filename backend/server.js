@@ -3,6 +3,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const pool = require("./db");
 require("dotenv").config();
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -16,8 +17,12 @@ app.use(
   })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
 app.use(cookieParser());
+
+app.use("/imgUploads", express.static(path.join(__dirname, "imgUploads")));
 
 pool
   .connect()
@@ -33,11 +38,13 @@ const adminRoutes = require("./routes/admins");
 const categoryRoutes = require("./routes/categories");
 const testsRouter = require("./routes/tests");
 const testInfosRouter = require("./routes/testInfos");
+const imgUploadRoutes = require("./routes/imgUploads");
 
 app.use("/api/admins", adminRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/tests", testsRouter);
 app.use("/api/test-infos", testInfosRouter);
+app.use("/api/uploads", imgUploadRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

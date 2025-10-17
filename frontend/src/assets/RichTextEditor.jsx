@@ -4,10 +4,11 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
-import ResizableImage from "../extensions/ResizableImage";
+import ResizableImageComponent from "../assets/ResizableImageComponent";
 import CustomOrderedList from "../extensions/CustomOrderedList";
 import LinkModal from "./LinkModal";
 import MenuBar from "./MenuBar";
+import axios from "axios";
 import "../css/RichTextEditor.css";
 
 function RichTextEditor({ value = "", onChange }) {
@@ -22,37 +23,78 @@ function RichTextEditor({ value = "", onChange }) {
         orderedList: false, // disable default ordered list
       }),
       CustomOrderedList, // custom ordered list supporting a,b,c / i,ii,iii
-      ResizableImage,
+      ResizableImageComponent,
       Link.configure({ openOnClick: true }),
       TextAlign.configure({ types: ["paragraph", "heading", "listItem"] }),
       Underline,
     ],
     content: value, // Set initial content from prop
     editorProps: {
-      handlePaste(view, event) {
+      handlePaste: async (view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
+
         for (let item of items) {
           if (item.type.includes("image")) {
             const file = item.getAsFile();
-            const reader = new FileReader();
-            reader.onload = () => {
-              view.dispatch(
-                view.state.tr.replaceSelectionWith(
-                  view.state.schema.nodes.resizableImage.create({
-                    src: reader.result,
-                    width: 300,
-                  })
-                )
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+              const res = await axios.post(
+                "http://localhost:5001/api/uploads/image",
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
               );
-            };
-            reader.readAsDataURL(file);
-            return true;
+              const imageUrl = res.data.url;
+              Promise.resolve().then(() => {
+                editor
+                  .chain()
+                  .focus()
+                  .setResizableImage({ src: imageUrl })
+                  .run();
+              });
+            } catch (err) {
+              console.error("Image upload failed:", err);
+            }
+
+            return true; // handled
+          }
+        }
+
+        return false;
+      },
+
+      handleDrop: async (view, event, slice, moved) => {
+        const files = Array.from(event.dataTransfer?.files || []);
+        for (let file of files) {
+          if (file.type.startsWith("image/")) {
+            const formData = new FormData();
+            formData.append("image", file);
+
+            try {
+              const res = await axios.post(
+                "http://localhost:5001/api/uploads/image",
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+              );
+              const imageUrl = res.data.url;
+              Promise.resolve().then(() => {
+                editor
+                  .chain()
+                  .focus()
+                  .setResizableImage({ src: imageUrl })
+                  .run();
+              });
+            } catch (err) {
+              console.error("Image upload failed:", err);
+            }
           }
         }
         return false;
       },
     },
+
     onUpdate: ({ editor }) => {
       // Trigger onChange callback when content changes
       if (onChange) {

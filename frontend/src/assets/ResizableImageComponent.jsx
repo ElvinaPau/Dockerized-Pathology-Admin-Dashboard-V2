@@ -22,14 +22,17 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }) => {
 
       const containerWidth =
         wrapperRef.current?.parentElement?.offsetWidth || 500;
-      const finalWidth = Math.min(img.naturalWidth, containerWidth);
       setMaxWidth(containerWidth);
-      updateAttributes({
-        width: finalWidth,
-        height: finalWidth / ratio,
-      });
+
+      if (width === 300) {
+        const finalWidth = Math.min(img.naturalWidth, containerWidth);
+        updateAttributes({
+          width: finalWidth,
+          height: finalWidth / ratio,
+        });
+      }
     };
-  }, [src, updateAttributes]);
+  }, [src]); // Remove updateAttributes from dependencies
 
   const displayWidth = Math.min(width, maxWidth);
   const displayHeight = aspectRatio
@@ -103,12 +106,36 @@ const ResizableImage = Node.create({
 
   addAttributes() {
     return {
-      src: { default: null },
-      width: { default: 300 },
-      height: { default: 200 },
+      src: {
+        default: null,
+      },
+      width: {
+        default: 300,
+        renderHTML: (attributes) => ({
+          width: attributes.width,
+        }),
+        parseHTML: (element) =>
+          parseInt(element.getAttribute("width") || "300", 10),
+      },
+      height: {
+        default: 200,
+        renderHTML: (attributes) => ({
+          height: attributes.height,
+        }),
+        parseHTML: (element) =>
+          parseInt(element.getAttribute("height") || "200", 10),
+      },
       alignment: {
         default: "center",
-        renderHTML: (attrs) => ({ class: `image-align-${attrs.alignment}` }),
+        renderHTML: (attributes) => ({
+          class: `image-align-${attributes.alignment}`,
+        }),
+        parseHTML: (element) =>
+          element.classList.contains("image-align-left")
+            ? "left"
+            : element.classList.contains("image-align-right")
+            ? "right"
+            : "center",
       },
     };
   },

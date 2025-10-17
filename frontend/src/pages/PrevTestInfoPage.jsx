@@ -71,8 +71,13 @@ function PrevTestInfoPage() {
                     <h1>{sanitizeData(info.extraData.title)}</h1>
                   )}
                   {info.extraData.description && (
-  <div className="rich-text-content" dangerouslySetInnerHTML={{ __html: info.extraData.description }} />
-)}
+                    <div
+                      className="rich-text-content"
+                      dangerouslySetInnerHTML={{
+                        __html: info.extraData.description,
+                      }}
+                    />
+                  )}
 
                   {info.extraData.image && (
                     <img
