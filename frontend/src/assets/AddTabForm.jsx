@@ -91,18 +91,9 @@ function AddTabForm() {
               title: info.title || "",
               description: info.description || "",
               image: info.imageUrl || null,
+              imageFileName: info.extraData?.imageFileName || null,
               ...info.extraData,
             };
-
-            // If this is a Lab Test info, map the image_url to containerImage
-            if (info.type === "Lab Test") {
-              fields.containerImage =
-                info.imageUrl || info.extraData?.containerImage || null;
-              fields.containerImageFileName =
-                info.extraData?.containerImageFileName || null;
-            } else {
-              fields.imageFileName = info.extraData?.imageFileName || null;
-            }
 
             return {
               id: uid(),
@@ -184,86 +175,41 @@ function AddTabForm() {
           let description = "";
           let imageUrl = null;
           let uploadedUrl = null;
-          let originalFileName = null; // Track original filename
+          let originalFileName = null;
 
+          // Set title and description based on type
           if (actualType === "Basic") {
             title = group.fields?.title || "";
             description = group.fields?.description || "";
-
-            // Upload image if it's a File object
-            if (group.fields?.image instanceof File) {
-              originalFileName = group.fields.image.name; // Save original name
-              const uploadFormData = new FormData();
-              uploadFormData.append("image", group.fields.image);
-              try {
-                const res = await axios.post(
-                  "http://localhost:5001/api/uploads/image",
-                  uploadFormData,
-                  { headers: { "Content-Type": "multipart/form-data" } }
-                );
-                imageUrl = res.data.url;
-                uploadedUrl = res.data.url;
-              } catch (err) {
-                console.error("Image upload failed:", err);
-                imageUrl = null;
-              }
-            } else if (typeof group.fields?.image === "string") {
-              // Already a URL (editing existing)
-              imageUrl = group.fields.image;
-              originalFileName = group.fields?.imageFileName || null;
-            }
           } else if (actualType === "Lab Test") {
             title = "";
             description = "";
-
-            // Upload container image if it's a File object
-            if (group.fields?.containerImage instanceof File) {
-              originalFileName = group.fields.containerImage.name; // Save original name
-              const uploadFormData = new FormData();
-              uploadFormData.append("image", group.fields.containerImage);
-              try {
-                const res = await axios.post(
-                  "http://localhost:5001/api/uploads/image",
-                  uploadFormData,
-                  { headers: { "Content-Type": "multipart/form-data" } }
-                );
-                imageUrl = res.data.url;
-                uploadedUrl = res.data.url;
-              } catch (err) {
-                console.error("Container image upload failed:", err);
-                imageUrl = null;
-              }
-            } else if (typeof group.fields?.containerImage === "string") {
-              // Already a URL (editing existing)
-              imageUrl = group.fields.containerImage;
-              originalFileName = group.fields?.containerImageFileName || null;
-            }
           } else if (actualType === "Container") {
             title = group.fields?.title || "";
             description = group.fields?.description || "";
+          }
 
-            // Upload image if it's a File object
-            if (group.fields?.image instanceof File) {
-              originalFileName = group.fields.image.name; // Save original name
-              const uploadFormData = new FormData();
-              uploadFormData.append("image", group.fields.image);
-              try {
-                const res = await axios.post(
-                  "http://localhost:5001/api/uploads/image",
-                  uploadFormData,
-                  { headers: { "Content-Type": "multipart/form-data" } }
-                );
-                imageUrl = res.data.url;
-                uploadedUrl = res.data.url;
-              } catch (err) {
-                console.error("Image upload failed:", err);
-                imageUrl = null;
-              }
-            } else if (typeof group.fields?.image === "string") {
-              // Already a URL (editing existing)
-              imageUrl = group.fields.image;
-              originalFileName = group.fields?.imageFileName || null;
+          // ✅ Universal image handling - same for all types
+          if (group.fields?.image instanceof File) {
+            originalFileName = group.fields.image.name;
+            const uploadFormData = new FormData();
+            uploadFormData.append("image", group.fields.image);
+            try {
+              const res = await axios.post(
+                "http://localhost:5001/api/uploads/image",
+                uploadFormData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+              );
+              imageUrl = res.data.url;
+              uploadedUrl = res.data.url;
+            } catch (err) {
+              console.error("Image upload failed:", err);
+              imageUrl = null;
             }
+          } else if (typeof group.fields?.image === "string") {
+            // Already a URL (editing existing)
+            imageUrl = group.fields.image;
+            originalFileName = group.fields?.imageFileName || null;
           }
 
           return {
@@ -273,20 +219,7 @@ function AddTabForm() {
             image_url: imageUrl,
             extra_data: {
               ...group.fields,
-              // Update the fields with uploaded URL and original filename
-              ...(actualType === "Lab Test" && uploadedUrl
-                ? {
-                    containerImage: uploadedUrl,
-                    containerImageFileName: originalFileName,
-                  }
-                : {}),
-              ...(actualType === "Basic" && uploadedUrl
-                ? {
-                    image: uploadedUrl,
-                    imageFileName: originalFileName,
-                  }
-                : {}),
-              ...(actualType === "Container" && uploadedUrl
+              ...(uploadedUrl
                 ? {
                     image: uploadedUrl,
                     imageFileName: originalFileName,
@@ -318,37 +251,18 @@ function AddTabForm() {
         alert("Test created successfully!");
       }
 
-      // Update local state with uploaded URLs and original filenames
       setFormData((prev) => ({
         ...prev,
         infos: prev.infos.map((group, idx) => {
           const processedInfo = processedInfos[idx];
           if (!processedInfo.uploadedUrl) return group;
 
-          const actualType = idx === 0 ? group.type || prev.infoType : "Basic";
-
           return {
             ...group,
             fields: {
               ...group.fields,
-              ...(actualType === "Lab Test"
-                ? {
-                    containerImage: processedInfo.uploadedUrl,
-                    containerImageFileName: processedInfo.originalFileName,
-                  }
-                : {}),
-              ...(actualType === "Basic"
-                ? {
-                    image: processedInfo.uploadedUrl,
-                    imageFileName: processedInfo.originalFileName,
-                  }
-                : {}),
-              ...(actualType === "Container"
-                ? {
-                    image: processedInfo.uploadedUrl,
-                    imageFileName: processedInfo.originalFileName,
-                  }
-                : {}),
+              image: processedInfo.uploadedUrl,
+              imageFileName: processedInfo.originalFileName,
             },
           };
         }),
@@ -438,8 +352,10 @@ function AddTabForm() {
                     {formData.infos.map((group, index) => {
                       const FormComponent =
                         index === 0
-                          ? getFormComponent(group.type)
-                          : getFormComponent("Basic");
+                          ? getFormComponent(group.type) // first form uses selected type
+                          : formData.infoType === "Container"
+                          ? getFormComponent("Container") // extra forms follow Container type
+                          : getFormComponent("Basic"); // otherwise extra forms are Basic
 
                       if (index === 0) {
                         return (

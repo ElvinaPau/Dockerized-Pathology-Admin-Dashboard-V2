@@ -21,6 +21,7 @@ import CategoryDetails from "./assets/CategoryDetails";
 import AdminPreviewPage from "./pages/AdminPreviewPage";
 import PrevTestInfoPage from "./pages/PrevTestInfoPage";
 import PrevTestsPage from "./pages/PrevTestsPage";
+import FixedFormPage from "./assets/FixedFormPage";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -51,6 +52,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               path="/categories/:id/edit/:testId"
               element={<AddTabForm />}
             />
+            <Route path="/categories/fixed-form" element={<FixedFormPage />} />
             <Route path="/preview" element={<AdminPreviewPage />} />
             <Route path="/prevtests/:id" element={<PrevTestsPage />} />
             <Route path="/testinfos/:id" element={<PrevTestInfoPage />} />

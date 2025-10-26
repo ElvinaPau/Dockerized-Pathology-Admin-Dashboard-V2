@@ -63,7 +63,7 @@ function ContainerForm({ fields = {}, setFields, onRemove, isFirst }) {
       </div>
 
       <div className="add-form-group">
-        <label>Title</label>
+        <label>Container Name</label>
         <input
           type="text"
           value={formData.title}
@@ -71,21 +71,24 @@ function ContainerForm({ fields = {}, setFields, onRemove, isFirst }) {
         />
       </div>
 
-      <div className="add-form-group">
-        <label>Image</label>
-        <ImageUploader
-          value={formData.image}
-          fileName={formData.imageFileName}
-          onChange={(val, fileName) => handleChange("image", val, fileName)}
-        />
-      </div>
+      <div className="container-side-by-side">
+        <div className="add-form-group">
+          <label>Image</label>
+          <ImageUploader
+            value={formData.image}
+            fileName={formData.imageFileName}
+            onChange={(val, fileName) => handleChange("image", val, fileName)}
+            className="container-img"
+          />
+        </div>
 
-      <div className="add-form-group">
-        <label>Description</label>
-        <RichTextEditor
-          value={formData.description}
-          onChange={(val) => handleChange("description", val)}
-        />
+        <div>
+          <label><strong>Description</strong></label>
+          <RichTextEditor
+            value={formData.description}
+            onChange={(val) => handleChange("description", val)}
+          />
+        </div>
       </div>
     </div>
   );

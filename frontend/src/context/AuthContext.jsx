@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
   const [admin, setAdmin] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Always send cookies with requests
   axios.defaults.withCredentials = true;
@@ -161,6 +163,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("token");
     setToken(null);
     setAdmin(null);
+    navigate("/");
   };
 
   // ========================
@@ -189,6 +192,24 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (token) fetchCurrentAdmin();
     else setLoading(false);
+  }, [token]);
+
+  // ========================
+  // Auto logout after 24 hours from login
+  // ========================
+  useEffect(() => {
+    if (!token) return;
+
+    // Clear any existing logout timer
+    let logoutTimer;
+
+    // Force logout exactly after 24 hours
+    logoutTimer = setTimeout(() => {
+      console.log("Auto-logout: refresh token expired after 24h");
+      logout();
+    }, 24 * 60 * 60 * 1000); // 24 hours
+
+    return () => clearTimeout(logoutTimer);
   }, [token]);
 
   return (

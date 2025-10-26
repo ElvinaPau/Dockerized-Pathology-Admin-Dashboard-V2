@@ -49,25 +49,45 @@
   resize: vertical;
 }
 
-.container{
+.container {
   display: flex;
   gap: 50px;
 }
 
-.left{
+.left {
   flex: 1.52;
 }
 
-.right{
+.right {
   flex: 1;
 }
 
 /* Side-by-side layout */
 .side-by-side {
   display: flex;
-  gap: 50px;
+  gap: 30px;
 }
 
 .side-by-side .add-form-group {
   flex: 1;
+}
+
+.react-select__control {
+  border-radius: 6px;
+  border-color: #ccc;
+  min-height: 38px;
+  box-shadow: none;
+}
+
+.react-select__multi-value {
+  background-color: #e8f0fe;
+}
+
+.react-select__multi-value__label {
+  color: #333;
+}
+
+.react-select__multi-value__remove:hover {
+  background-color: #d2e3fc;
+  color: #000;
 }

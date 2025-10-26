@@ -181,15 +181,15 @@ router.post("/login", async (req, res) => {
     const admin = result.rows[0];
 
     if (admin.status === "pending") {
-      return res.status(403).json({ error: "Account not approved yet" });
+      return res.status(404).json({ error: "Account not approved yet" });
     }
     if (admin.status === "rejected") {
-      return res.status(403).json({ error: "Account request is rejected" });
+      return res.status(404).json({ error: "Account request is rejected" });
     }
 
     const validPassword = await bcrypt.compare(password, admin.password);
     if (!validPassword) {
-      return res.status(401).json({ error: "Wrong password" });
+      return res.status(404).json({ error: "Wrong password" });
     }
 
     // Generate short-lived access token (1h)

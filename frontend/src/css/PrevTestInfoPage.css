@@ -1,6 +1,24 @@
+.prev-header {
+  width: 750px;
+  margin: 20px auto;
+  padding-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.prev-header-title {
+  display: flex;
+}
+
+.prev-back-btn {
+  background: none;
+  margin-top: 16px;
+  font-size: 24px;
+  cursor: pointer;
+}
+
 .test-info-details {
   width: 700px;
-  margin: 40px auto;
+  margin: 4px auto;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -18,7 +36,6 @@
 
 .test-info-details p {
   font-size: larger;
-  margin: 6px 0;
 }
 
 .test-info-details ol li::marker {

@@ -49,10 +49,25 @@ function AdminHomePage() {
     const fetchCategories = async () => {
       try {
         const res = await axios.get("http://localhost:5001/api/categories");
-        // Sort by position if available
-        const sorted = res.data.sort(
+        let sorted = res.data.sort(
           (a, b) => (a.position ?? a.id) - (b.position ?? b.id)
         );
+
+        // Ensure FORM stays last
+        const formCategory = sorted.find((cat) => cat.name === "FORM");
+        if (!formCategory) {
+          sorted.push({
+            id: "fixed-form",
+            name: "FORM",
+            testCount: 0,
+            fixed: true,
+          });
+        } else {
+          sorted = sorted
+            .filter((cat) => cat.name !== "FORM")
+            .concat(formCategory);
+        }
+
         setCategories(sorted);
       } catch (err) {
         console.error("Error fetching categories:", err.message);
@@ -74,21 +89,44 @@ function AdminHomePage() {
     fetchCount();
   }, []);
 
+  // Add new category
   const handleSubmit = async () => {
     if (!newCategoryName.trim()) return;
+
+    const exists = categories.some(
+      (cat) => cat.name.toLowerCase() === newCategoryName.trim().toLowerCase()
+    );
+    if (exists) {
+      alert("This category already exists!");
+      return;
+    }
 
     try {
       await axios.post("http://localhost:5001/api/categories", {
         name: newCategoryName,
       });
 
-      // Re-fetch updated category list to get correct order
+      // Re-fetch updated list
       const res = await axios.get("http://localhost:5001/api/categories");
-      const sorted = res.data.sort(
+      let sorted = res.data.sort(
         (a, b) => (a.position ?? a.id) - (b.position ?? b.id)
       );
-      setCategories(sorted);
 
+      const formCategory = sorted.find((cat) => cat.name === "FORM");
+      if (!formCategory) {
+        sorted.push({
+          id: "fixed-form",
+          name: "FORM",
+          testCount: 0,
+          fixed: true,
+        });
+      } else {
+        sorted = sorted
+          .filter((cat) => cat.name !== "FORM")
+          .concat(formCategory);
+      }
+
+      setCategories(sorted);
       setNewCategoryName("");
       setShowInput(false);
     } catch (err) {
@@ -97,7 +135,7 @@ function AdminHomePage() {
   };
 
   // Delete category
-  const handleDeleteCategory = async (id) => {
+  const handleDeleteCategory = async (id, name) => {
     if (!window.confirm("Are you sure you want to delete this category?"))
       return;
 
@@ -114,13 +152,16 @@ function AdminHomePage() {
     const { source, destination } = result;
     if (!destination) return;
 
-    const newCategories = Array.from(categories);
-    const [moved] = newCategories.splice(source.index, 1);
-    newCategories.splice(destination.index, 0, moved);
+    const formCat = categories.find((c) => c.fixed);
+    const movable = categories.filter((c) => !c.fixed);
 
+    const [moved] = movable.splice(source.index, 1);
+    movable.splice(destination.index, 0, moved);
+
+    const newCategories = [...movable, formCat];
     setCategories(newCategories);
 
-    const updates = newCategories.map((cat, index) => ({
+    const updates = movable.map((cat, index) => ({
       id: cat.id,
       position: index,
     }));
@@ -167,38 +208,59 @@ function AdminHomePage() {
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {categories.map((cat, index) => (
-                <Draggable
-                  key={cat.id}
-                  draggableId={cat.id.toString()}
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      style={{
-                        ...provided.draggableProps.style,
-                        opacity: snapshot.isDragging ? 0.5 : 1,
-                        cursor: "grab",
-                      }}
-                    >
-                      <CatCard
-                        id={cat.id}
-                        title={cat.name}
-                        count={cat.testCount}
-                        icon={<GrTest />}
-                        lastUpdated={
-                          cat.lastUpdated || new Date().toLocaleDateString()
-                        }
-                        onClick={() => navigate(`/categories/${cat.id}`)}
-                        onDelete={() => handleDeleteCategory(cat.id)}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+              {categories.map((cat, index) =>
+                cat.fixed ? (
+                  // Fixed “FORM” card (not draggable)
+                  <div key={cat.id} style={{ opacity: 0.9 }}>
+                    <CatCard
+                      id={cat.id}
+                      title={cat.name}
+                      count={cat.testCount}
+                      icon={<GrTest />}
+                      lastUpdated={
+                        cat.lastUpdated || new Date().toLocaleDateString()
+                      }
+                      onClick={() => navigate(`/categories/${cat.id}`)}
+                      onDelete={() =>
+                        alert("The 'FORM' category cannot be deleted.")
+                      }
+                    />
+                  </div>
+                ) : (
+                  <Draggable
+                    key={cat.id}
+                    draggableId={cat.id.toString()}
+                    index={index}
+                  >
+                    {(provided, snapshot) => (
+                      <div
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        style={{
+                          ...provided.draggableProps.style,
+                          opacity: snapshot.isDragging ? 0.5 : 1,
+                          cursor: "grab",
+                        }}
+                      >
+                        <CatCard
+                          id={cat.id}
+                          title={cat.name}
+                          count={cat.testCount}
+                          icon={<GrTest />}
+                          lastUpdated={
+                            cat.lastUpdated || new Date().toLocaleDateString()
+                          }
+                          onClick={() => navigate(`/categories/${cat.id}`)}
+                          onDelete={() =>
+                            handleDeleteCategory(cat.id, cat.name)
+                          }
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                )
+              )}
 
               {provided.placeholder}
 

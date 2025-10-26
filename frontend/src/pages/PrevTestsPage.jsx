@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import HomePageHeader from "../assets/HomePageHeader";
 import { useNavigation } from "../context/NavigationContext";
+import { IoIosArrowBack } from "react-icons/io";
 import axios from "axios";
 import "../css/AdminPreviewPage.css";
 
@@ -48,22 +49,29 @@ function PrevTestsPage() {
     <div className={`home-page-content ${isNavExpanded ? "Nav-Expanded" : ""}`}>
       <HomePageHeader />
 
-      <button className="back-btn" onClick={() => navigate("/preview")}>
-        ← Back
-      </button>
-
-      <div className="prev-page-title">{categoryName}</div>
-
-      <div className="prev-categories-list">
-        {tests.map((test) => (
-          <div
-            key={test.id}
-            className="prev-category-card"
-            onClick={() => navigate(`/testinfos/${test.id}`)}
+      <div className="prev-header">
+        <div className="prev-header-title">
+          <button
+            className="prev-back-btn"
+            onClick={() => navigate("/preview")}
           >
-            <h4 className="prev-category-title">{test.name}</h4>
-          </div>
-        ))}
+            <IoIosArrowBack />
+          </button>
+
+          <div className="prev-page-title">{categoryName}</div>
+        </div>
+
+        <div className="prev-categories-list">
+          {tests.map((test) => (
+            <div
+              key={test.id}
+              className="prev-category-card"
+              onClick={() => navigate(`/testinfos/${test.id}`)}
+            >
+              <h4 className="prev-category-title">{test.name}</h4>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

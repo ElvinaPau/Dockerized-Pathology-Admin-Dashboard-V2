@@ -139,7 +139,18 @@ const ResizableImage = Node.create({
       },
     };
   },
-
+  addCommands() {
+    return {
+      setResizableImage:
+        (options) =>
+        ({ commands }) => {
+          return commands.insertContent({
+            type: this.name,
+            attrs: options,
+          });
+        },
+    };
+  },
   parseHTML() {
     return [
       {

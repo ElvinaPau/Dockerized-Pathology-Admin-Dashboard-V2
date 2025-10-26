@@ -12,3 +12,23 @@
   color: red;
   background: none;
 }
+
+.container-img {
+  overflow: hidden;
+  border-radius: 8px;
+  margin-top: 5px;
+}
+
+.container-side-by-side {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.container-side-by-side > div:first-child {
+  flex: 1;
+}
+
+.container-side-by-side > div:last-child {
+  flex: 2;
+}

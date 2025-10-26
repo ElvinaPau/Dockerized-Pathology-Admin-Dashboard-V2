@@ -19,97 +19,93 @@ function RichTextEditor({ value = "", onChange }) {
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        orderedList: false, // disable default ordered list
-      }),
-      CustomOrderedList, // custom ordered list supporting a,b,c / i,ii,iii
+      StarterKit.configure({ orderedList: false }),
+      CustomOrderedList,
       ResizableImageComponent,
       Link.configure({ openOnClick: true }),
       TextAlign.configure({ types: ["paragraph", "heading", "listItem"] }),
       Underline,
     ],
-    content: value, // Set initial content from prop
+    content: value,
     editorProps: {
-      handlePaste: async (view, event) => {
+      handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (!items) return false;
 
         for (let item of items) {
           if (item.type.includes("image")) {
+            event.preventDefault();
             const file = item.getAsFile();
-            const formData = new FormData();
-            formData.append("image", file);
-
-            try {
-              const res = await axios.post(
-                "http://localhost:5001/api/uploads/image",
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-              );
-              const imageUrl = res.data.url;
-              Promise.resolve().then(() => {
-                editor
-                  .chain()
-                  .focus()
-                  .setResizableImage({ src: imageUrl })
-                  .run();
-              });
-            } catch (err) {
-              console.error("Image upload failed:", err);
-            }
-
-            return true; // handled
+            if (file) insertImageWithPreview(file);
+            return true;
           }
         }
 
-        return false;
+        return false; // allow normal text/html paste
       },
 
-      handleDrop: async (view, event, slice, moved) => {
+      handleDrop: (view, event) => {
         const files = Array.from(event.dataTransfer?.files || []);
+        let handled = false;
+
         for (let file of files) {
           if (file.type.startsWith("image/")) {
-            const formData = new FormData();
-            formData.append("image", file);
-
-            try {
-              const res = await axios.post(
-                "http://localhost:5001/api/uploads/image",
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-              );
-              const imageUrl = res.data.url;
-              Promise.resolve().then(() => {
-                editor
-                  .chain()
-                  .focus()
-                  .setResizableImage({ src: imageUrl })
-                  .run();
-              });
-            } catch (err) {
-              console.error("Image upload failed:", err);
-            }
+            handled = true;
+            event.preventDefault();
+            insertImageWithPreview(file);
           }
         }
-        return false;
+
+        return handled;
       },
     },
-
     onUpdate: ({ editor }) => {
-      // Trigger onChange callback when content changes
-      if (onChange) {
-        const html = editor.getHTML();
-        onChange(html);
-      }
+      if (onChange) onChange(editor.getHTML());
     },
   });
 
-  // Sync editor content when value prop changes (for editing mode)
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
     }
   }, [value, editor]);
+
+  // Insert image with preview, then replace src after upload
+  const insertImageWithPreview = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const previewUrl = e.target.result; // base64 data URL
+      const placeholderPos = editor.state.selection.from;
+
+      editor.chain().focus().setResizableImage({ src: previewUrl }).run();
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      axios
+        .post("http://localhost:5001/api/uploads/image", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })
+        .then((res) => {
+          const uploadedUrl = res.data.url;
+          const node = editor.state.doc.nodeAt(placeholderPos);
+          if (node && node.type.name === "resizableImage") {
+            const tr = editor.state.tr.setNodeMarkup(
+              placeholderPos,
+              undefined,
+              {
+                ...node.attrs,
+                src: uploadedUrl,
+              }
+            );
+            editor.view.dispatch(tr);
+          }
+        })
+        .catch(console.error);
+    };
+
+    reader.readAsDataURL(file);
+  };
 
   const openLinkModal = () => {
     if (!editor) return;
@@ -140,14 +136,12 @@ function RichTextEditor({ value = "", onChange }) {
   return (
     <div className="editor-wrapper">
       <MenuBar editor={editor} openLinkModal={openLinkModal} />
-
       <div
         className="editor-container"
         onClick={() => editor?.chain().focus().run()}
       >
         <EditorContent editor={editor} />
       </div>
-
       <LinkModal
         isOpen={isLinkModalOpen}
         onClose={() => setIsLinkModalOpen(false)}

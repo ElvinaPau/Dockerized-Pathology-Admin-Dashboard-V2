@@ -3,48 +3,59 @@ import "../css/LabTestForm.css";
 import RichTextEditor from "./RichTextEditor";
 import { IoIosRemoveCircleOutline, IoIosRemoveCircle } from "react-icons/io";
 import { ImageUploader } from "./ImageUploader";
+import Select from "react-select";
 
 function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
+
   const [formData, setFormData] = useState({
-    title: fields.title || "",
-    description: fields.description || "",
     labInCharge: fields.labInCharge || "",
-    specimenType: fields.specimenType || "",
-    form: fields.form || "",
+    specimenType: Array.isArray(fields.specimenType)
+      ? fields.specimenType
+      : fields.specimenType
+      ? [fields.specimenType]
+      : [],
+    otherSpecimen: fields.otherSpecimen || "",
+    form: { text: "", url: "" },
     TAT: fields.TAT || "",
     containerLabel: fields.containerLabel || "",
     sampleVolume: fields.sampleVolume || "",
     remark: fields.remark || "",
-    containerImage: fields.containerImage || null,
-    containerImageFileName: fields.containerImageFileName || null, // Add this
+    image: null,
+    imageFileName: fields.imageFileName || null,
   });
 
   const [isHover, setIsHover] = useState(false);
 
   useEffect(() => {
-    const API_BASE = "http://localhost:5001";
+    const imageValue =
+      typeof fields.image === "string"
+        ? fields.image.startsWith("http")
+          ? fields.image
+          : `${API_BASE}${fields.image}`
+        : fields.image || null;
 
     setFormData({
-      title: fields.title || "",
-      description: fields.description || "",
       labInCharge: fields.labInCharge || "",
-      specimenType: fields.specimenType || "",
-      form: fields.form || "",
+      specimenType: Array.isArray(fields.specimenType)
+        ? fields.specimenType
+        : fields.specimenType
+        ? [fields.specimenType]
+        : [],
+      otherSpecimen: fields.otherSpecimen || "",
+      form: fields.form || { text: "", url: "" },
       TAT: fields.TAT || "",
       containerLabel: fields.containerLabel || "",
       sampleVolume: fields.sampleVolume || "",
       remark: fields.remark || "",
-      containerImage: fields.containerImage
-        ? fields.containerImage.startsWith("http")
-          ? fields.containerImage
-          : `${API_BASE}${fields.containerImage}`
-        : null,
-      containerImageFileName: fields.containerImageFileName || null,
+      image: imageValue,
+      imageFileName: fields.imageFileName || null,
     });
   }, [fields]);
 
-  const handleChange = (key, value) => {
+  const handleChange = (key, value, fileName = null) => {
     const updated = { ...formData, [key]: value };
+    if (fileName) updated.imageFileName = fileName;
     setFormData(updated);
     setFields(updated); // Send data to parent
   };
@@ -71,52 +82,105 @@ function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
 
       <div className="container">
         <div className="left">
-          <div className="add-form-group">
-            <label>Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => handleChange("title", e.target.value)}
-            />
-          </div>
-
           <div className="side-by-side">
             <div className="add-form-group">
               <label>Lab in-charge</label>
               <select
                 value={formData.labInCharge}
                 onChange={(e) => handleChange("labInCharge", e.target.value)}
-                required
               >
                 <option value="">Select</option>
-                <option value="blood">Blood</option>
-                <option value="urine">Urine</option>
+                <option value="Microbiology">Microbiology</option>
+                <option value="Histopathology">Histopathology</option>
+                <option value="Cytology">Cytology</option>
+                <option value="Integrated">Integrated</option>
+                <option value="Chemical Pathology">Chemical Pathology</option>
+                <option value="Haematology">Haematology</option>
               </select>
             </div>
 
             <div className="add-form-group">
-              <label>Specimen Type</label>
-              <textarea
-                value={formData.specimenType}
-                onChange={(e) => handleChange("specimenType", e.target.value)}
-                rows={2}
-                style={{ resize: "vertical" }}
+              <label>Specimen Type(s)</label>
+              <Select
+                isMulti
+                options={[
+                  { value: "Blood (plasma)", label: "Blood (plasma)" },
+                  { value: "Blood (serum)", label: "Blood (serum)" },
+                  { value: "Body fluid", label: "Body fluid" },
+                  { value: "CSF", label: "CSF" },
+                  { value: "Smear", label: "Smear" },
+                  { value: "Stool", label: "Stool" },
+                  { value: "Urine, random", label: "Urine, random" },
+                  { value: "Urine, 24-hr", label: "Urine, 24-hr" },
+                  { value: "Whole blood", label: "Whole blood" },
+                  { value: "Others...", label: "Others..." },
+                ]}
+                value={formData.specimenType.map((val) => ({
+                  value: val,
+                  label: val,
+                }))}
+                onChange={(selected) => {
+                  const values = selected.map((s) => s.value);
+                  handleChange("specimenType", values);
+                }}
+                classNamePrefix="react-select"
+                placeholder="Select"
               />
+
+              {/* Show textarea only if "Others" is selected */}
+              {formData.specimenType.includes("Others...") && (
+                <textarea
+                  value={formData.otherSpecimen || ""}
+                  onChange={(e) =>
+                    handleChange("otherSpecimen", e.target.value)
+                  }
+                  placeholder="Please specify other specimen type(s)..."
+                  rows={2}
+                  style={{ resize: "vertical", marginTop: "8px" }}
+                />
+              )}
             </div>
           </div>
 
           <div className="side-by-side">
             <div className="add-form-group">
               <label>Form</label>
-              <select
-                value={formData.form}
-                onChange={(e) => handleChange("form", e.target.value)}
-                required
-              >
-                <option value="">Select</option>
-                <option value="blood">Blood</option>
-                <option value="urine">Urine</option>
-              </select>
+
+              <input
+                type="text"
+                placeholder="Text to display"
+                value={formData.form?.text || ""}
+                onChange={(e) => {
+                  const newForm = { ...formData.form, text: e.target.value };
+                  handleChange("form", newForm);
+                }}
+              />
+
+              <input
+                type="url"
+                placeholder="Link URL (https://...)"
+                value={formData.form?.url || ""}
+                onChange={(e) => {
+                  const newForm = { ...formData.form, url: e.target.value };
+                  handleChange("form", newForm);
+                }}
+              />
+
+              {formData.form?.url && (
+                <a
+                  href={formData.form.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-block",
+                    marginTop: "6px",
+                    color: "#007bff",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {formData.form.text || formData.form.url}
+                </a>
+              )}
             </div>
 
             <div className="add-form-group">
@@ -132,15 +196,11 @@ function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
 
           <div className="add-form-group">
             <label>Container Label</label>
-            <select
+            <input
+              type="text"
               value={formData.containerLabel}
               onChange={(e) => handleChange("containerLabel", e.target.value)}
-              required
-            >
-              <option value="">Select</option>
-              <option value="blood">Blood</option>
-              <option value="urine">Urine</option>
-            </select>
+            />
           </div>
         </div>
 
@@ -158,27 +218,12 @@ function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
           <div className="add-form-group">
             <label>Container</label>
             <ImageUploader
-              value={formData.containerImage}
-              fileName={formData.containerImageFileName}
-              onChange={(val) => {
-                if (val instanceof File) {
-                  handleChange("containerImage", val);
-                  handleChange("containerImageFileName", val.name);
-                } else {
-                  handleChange("containerImage", val);
-                  handleChange("containerImageFileName", null);
-                }
-              }}
+              value={formData.image}
+              fileName={formData.imageFileName}
+              onChange={(val, fileName) => handleChange("image", val, fileName)}
             />
           </div>
         </div>
-      </div>
-      <div>
-        <label style={{ fontWeight: 600 }}>Description</label>
-        <RichTextEditor
-          value={formData.description}
-          onChange={(val) => handleChange("description", val)}
-        />
       </div>
 
       <div>
