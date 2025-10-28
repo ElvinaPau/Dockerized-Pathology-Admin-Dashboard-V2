@@ -9,7 +9,9 @@ function AdminPreviewPage() {
   const { isNavExpanded } = useNavigation();
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
+  const [forms, setForms] = useState([]);
 
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -25,6 +27,30 @@ function AdminPreviewPage() {
     fetchCategories();
   }, []);
 
+  // Fetch forms
+  useEffect(() => {
+    const fetchForms = async () => {
+      try {
+        const res = await axios.get("http://localhost:5001/api/forms");
+        setForms(res.data);
+      } catch (err) {
+        console.error("Error fetching forms:", err.message);
+      }
+    };
+    fetchForms();
+  }, []);
+
+  // Combine normal categories + fixed FORM category
+  const allCategories = [
+    ...categories,
+    {
+      id: "fixed-form",
+      name: "FORM",
+      testCount: forms.length,
+      fixed: true,
+    },
+  ];
+
   return (
     <div className={`home-page-content ${isNavExpanded ? "Nav-Expanded" : ""}`}>
       <HomePageHeader />
@@ -34,7 +60,7 @@ function AdminPreviewPage() {
       <div className="prev-header">
         {/* Categories vertical list */}
         <div className="prev-categories-list">
-          {categories.map((cat) => (
+          {allCategories.map((cat) => (
             <div
               key={cat.id}
               className="prev-category-card"

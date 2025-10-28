@@ -5,12 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import "react-resizable/css/styles.css";
 import "../css/ResizableImage.css";
 
+// ----- React Component for the Node -----
 const ResizableImageComponent = ({ node, updateAttributes, selected }) => {
   const { src, width = 300, alignment } = node.attrs;
   const wrapperRef = useRef(null);
+
   const [naturalSize, setNaturalSize] = useState({ width: 300, height: 200 });
   const [aspectRatio, setAspectRatio] = useState(1.5);
-  const [maxWidth, setMaxWidth] = useState(500);
+
+  const maxWidth = 300;
+  const maxHeight = 200;
 
   useEffect(() => {
     const img = new Image();
@@ -20,19 +24,19 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }) => {
       setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
       setAspectRatio(ratio);
 
-      const containerWidth =
-        wrapperRef.current?.parentElement?.offsetWidth || 500;
-      setMaxWidth(containerWidth);
-
-      if (width === 300) {
-        const finalWidth = Math.min(img.naturalWidth, containerWidth);
-        updateAttributes({
-          width: finalWidth,
-          height: finalWidth / ratio,
-        });
+      let finalWidth = Math.min(img.naturalWidth, maxWidth);
+      let finalHeight = finalWidth / ratio;
+      if (finalHeight > maxHeight) {
+        finalHeight = maxHeight;
+        finalWidth = maxHeight * ratio;
       }
+
+      updateAttributes({
+        width: finalWidth,
+        height: finalHeight,
+      });
     };
-  }, [src]); // Remove updateAttributes from dependencies
+  }, [src]);
 
   const displayWidth = Math.min(width, maxWidth);
   const displayHeight = aspectRatio
@@ -56,26 +60,26 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }) => {
     >
       <ResizableBox
         width={displayWidth}
-        height={displayWidth / aspectRatio}
+        height={displayHeight}
         lockAspectRatio={true}
         minConstraints={[50, 50]}
-        maxConstraints={[maxWidth, maxWidth / aspectRatio]}
+        maxConstraints={[maxWidth, maxHeight]}
         onResizeStop={(e, data) =>
           updateAttributes({
             width: data.size.width,
             height: data.size.height,
           })
         }
-        handleSize={[0, 0]} // prevents extra padding for the handle
+        handleSize={[0, 0]}
       >
         <div
           className="resizable-image-container"
           style={{
             width: "100%",
-            height: "98%",
+            height: "100%",
             outline: selected ? "2px solid #87cefb" : "none",
             boxSizing: "border-box",
-            position: "relative", // for absolute handle
+            position: "relative",
           }}
         >
           <img
@@ -97,6 +101,7 @@ const ResizableImageComponent = ({ node, updateAttributes, selected }) => {
   );
 };
 
+// ----- TipTap Node Definition -----
 const ResizableImage = Node.create({
   name: "resizableImage",
   group: "block",
@@ -106,39 +111,13 @@ const ResizableImage = Node.create({
 
   addAttributes() {
     return {
-      src: {
-        default: null,
-      },
-      width: {
-        default: 300,
-        renderHTML: (attributes) => ({
-          width: attributes.width,
-        }),
-        parseHTML: (element) =>
-          parseInt(element.getAttribute("width") || "300", 10),
-      },
-      height: {
-        default: 200,
-        renderHTML: (attributes) => ({
-          height: attributes.height,
-        }),
-        parseHTML: (element) =>
-          parseInt(element.getAttribute("height") || "200", 10),
-      },
-      alignment: {
-        default: "center",
-        renderHTML: (attributes) => ({
-          class: `image-align-${attributes.alignment}`,
-        }),
-        parseHTML: (element) =>
-          element.classList.contains("image-align-left")
-            ? "left"
-            : element.classList.contains("image-align-right")
-            ? "right"
-            : "center",
-      },
+      src: { default: null },
+      width: { default: 300 },
+      height: { default: 200 },
+      alignment: { default: "left" },
     };
   },
+
   addCommands() {
     return {
       setResizableImage:
@@ -151,6 +130,7 @@ const ResizableImage = Node.create({
         },
     };
   },
+
   parseHTML() {
     return [
       {
@@ -170,13 +150,34 @@ const ResizableImage = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const { alignment = "left", width, height, src } = HTMLAttributes;
+
+    // Generate inline styles with proper spacing and formatting for Flutter
+    let style = "display: block; ";
+    
+    if (alignment === "left") {
+      style += "margin-left: 0; margin-right: auto;";
+    } else if (alignment === "center") {
+      style += "margin-left: auto; margin-right: auto;";
+    } else if (alignment === "right") {
+      style += "margin-left: auto; margin-right: 0;";
+    }
+
+    // Add width and height with proper spacing
+    if (width) style += ` width: ${width}px;`;
+    if (height) style += ` height: ${height}px;`;
+
+    // Add data attributes for easier Flutter parsing
     return [
       "img",
       mergeAttributes(HTMLAttributes, {
         "data-type": "resizableImage",
-        width: HTMLAttributes.width,
-        height: HTMLAttributes.height,
-        class: `image-align-${HTMLAttributes.alignment}`,
+        "data-alignment": alignment, // Explicit alignment attribute
+        src,
+        width,
+        height,
+        class: `image-align-${alignment}`,
+        style,
       }),
     ];
   },

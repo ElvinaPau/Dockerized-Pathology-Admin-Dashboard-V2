@@ -1,12 +1,20 @@
 .prev-header {
-  width: 750px;
+  border-radius: 10px;
+  width: 700px;
   margin: 20px auto;
   padding-bottom: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .prev-header-title {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background-color: #fff;
   display: flex;
+}
+
+.prev-page-title{
+  padding: 5px;
 }
 
 .prev-back-btn {
@@ -17,17 +25,13 @@
 }
 
 .test-info-details {
-  width: 700px;
-  margin: 4px auto;
-  background: white;
+  width: 620px;
+  margin: 15px auto;
+  background: #ffffffb3;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding-left: 24px;
+  padding: 20px;
   padding-bottom: 15px;
-}
-
-.info-item {
-  margin-top: 0%;
 }
 
 .test-info-details h1 {
@@ -36,10 +40,6 @@
 
 .test-info-details p {
   font-size: larger;
-}
-
-.test-info-details ol li::marker {
-  font-size: 1.3em;
 }
 
 .test-info-image {
@@ -73,30 +73,7 @@
 
 .extra-data {
   margin-top: 20px;
-  padding: 10px;
   border-radius: 8px;
 }
 
-.rich-text-content ul,
-.rich-text-content ol {
-  padding-left: 0;
-  list-style-position: outside;
-}
 
-.rich-text-content li {
-  margin-left: 1.5em;
-}
-
-.rich-text-content li[style*="text-align: center"] {
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  width: fit-content;
-}
-
-.rich-text-content li[style*="text-align: right"] {
-  direction: rtl;
-  text-align: right;
-  margin-left: auto;
-  margin-right: 1.5em;
-}

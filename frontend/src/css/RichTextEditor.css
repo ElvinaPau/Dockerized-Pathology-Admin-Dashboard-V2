@@ -33,26 +33,14 @@
   color: #000;
 }
 
-.ProseMirror ul,
+/* Remove default padding/margin from lists */
+/* .ProseMirror ul,
 .ProseMirror ol {
   padding-left: 0;
+  margin-left: 0;
   list-style-position: outside;
 }
 
 .ProseMirror li {
-  margin-left: 1.5em;
-}
-
-.ProseMirror li[style*="text-align: center"] {
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  width: fit-content;
-}
-
-.ProseMirror li[style*="text-align: right"] {
-  direction: rtl;
-  text-align: right;
-  margin-left: auto;
-  margin-right: 1.5em;
-}
+  margin-left: 10px;
+} */

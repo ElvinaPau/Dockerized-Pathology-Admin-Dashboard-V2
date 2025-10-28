@@ -63,7 +63,7 @@
 }
 
 .edit-title input {
-  width: auto;
+  width: 300px;
   padding: 5px;
   font-size: 1.3rem;
 }

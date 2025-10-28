@@ -40,3 +40,77 @@
   font-weight: bold;
   margin-top: 0%;
 }
+
+.form-info-container {
+  padding: 15px;
+  width: 650px;
+  margin: 20px auto;
+  background: #ffffffb3;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-table-container {
+  margin: 2px auto;
+  background-color: #fff;
+  padding: 15px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+/* Table styling */
+.form-table {
+  border-radius: 8px;
+  border-collapse: separate;
+  border-spacing: 0;
+  background-color: #fff;
+}
+
+.form-table th,
+.form-table td {
+  border-top: none;
+  border-left: none;
+  padding: 10px;
+  text-align: left;
+}
+
+.form-table th {
+  background-color: #f3f3f3;
+  font-weight: bold;
+}
+
+/* Remove right border from last column */
+.form-table th:last-child,
+.form-table td:last-child {
+  border-right: none;
+}
+
+/* Remove bottom border for last row */
+.form-table tr:last-child td {
+  border-bottom: none;
+}
+
+.form-table a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.form-table a:hover {
+  text-decoration: underline;
+}
+
+.form-search-input {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-search-input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}

@@ -89,10 +89,8 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
                 { value: "Hematology", label: "Hematology" },
                 { value: "Serology", label: "Serology" },
                 {
-                  value:
-                    "Clinical Haematology Referral Laboratory, Ampang",
-                  label:
-                    "Clinical Haematology Referral Laboratory, Ampang",
+                  value: "Clinical Haematology Referral Laboratory, Ampang",
+                  label: "Clinical Haematology Referral Laboratory, Ampang",
                 },
                 {
                   value: "Hospital Tunku Azizah",
@@ -111,7 +109,6 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
               }}
               classNamePrefix="react-select"
               placeholder="Select"
-              
             />
 
             {/* Show textarea if Others selected */}
@@ -141,7 +138,7 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
           </label>
 
           <label>
-            Form URL
+            Form Link
             <input
               type="url"
               value={formData.form_url}
@@ -151,7 +148,7 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
           </label>
 
           <label>
-            Link Text To Display
+            Text To Display (Link)
             <input
               type="text"
               value={formData.link_text}

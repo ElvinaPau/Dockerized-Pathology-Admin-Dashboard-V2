@@ -85,7 +85,7 @@ router.get("/", async (req, res) => {
       query += ` AND category_id = $1`;
     }
 
-    query += " ORDER BY created_at ASC";
+    query += " ORDER BY name ASC";
 
     const result = await pool.query(query, values);
     res.json(result.rows);

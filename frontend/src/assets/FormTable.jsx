@@ -127,7 +127,7 @@ const FormTable = () => {
                 <th>No</th>
                 <th>Field</th>
                 <th>Form Title</th>
-                <th>Form (Link)</th>
+                <th>Form</th>
                 <th>Actions</th>
               </tr>
             </thead>
