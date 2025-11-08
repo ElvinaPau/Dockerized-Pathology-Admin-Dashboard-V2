@@ -176,7 +176,7 @@ function AddTabForm() {
           let uploadedUrl = null;
           let originalFileName = null;
 
-          // Universal image handling
+          // Image upload handling
           if (group.fields?.image instanceof File) {
             originalFileName = group.fields.image.name;
             const uploadFormData = new FormData();
@@ -198,17 +198,19 @@ function AddTabForm() {
             originalFileName = group.fields?.imageFileName || null;
           }
 
+          // Update the fields with uploaded image URL for immediate preview
+          const updatedFields = {
+            ...group.fields,
+            image: imageUrl,
+            imageFileName: originalFileName,
+          };
+
           return {
             type: actualType,
             title,
             description,
             image_url: imageUrl,
-            extra_data: {
-              ...group.fields,
-              ...(uploadedUrl
-                ? { image: uploadedUrl, imageFileName: originalFileName }
-                : {}),
-            },
+            extra_data: updatedFields,
             uploadedUrl,
             originalFileName,
             index,
@@ -216,6 +218,17 @@ function AddTabForm() {
         })
       );
 
+      // Update local formData with uploaded image URLs so preview reflects changes
+      setFormData((prev) => ({
+        ...prev,
+        infos: prev.infos.map((info, index) => ({
+          ...info,
+          type: index === 0 ? prev.infoType : "Basic",
+          fields: processedInfos[index].extra_data,
+        })),
+      }));
+
+      // Prepare payload for API
       const payload = {
         name: formData.name,
         category_id: id,
@@ -226,6 +239,7 @@ function AddTabForm() {
         ),
       };
 
+      // Save or update test
       if (testId) {
         await axios.put(`http://localhost:5001/api/tests/${testId}`, payload);
         alert("Test updated successfully!");
@@ -234,7 +248,8 @@ function AddTabForm() {
         alert("Test created successfully!");
       }
 
-      setIsPreviewMode(true); // Show preview after saving
+      // Show preview mode
+      setIsPreviewMode(true);
     } catch (err) {
       console.error("Error saving test:", err);
       alert("Failed to save test. Check console for details.");

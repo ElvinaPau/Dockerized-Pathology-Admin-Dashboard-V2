@@ -47,6 +47,7 @@ const testInfosRouter = require("./routes/testInfos");
 const imgUploadRoutes = require("./routes/imgUploads");
 const formRoutes = require("./routes/forms");
 const contactsRoute = require("./routes/contacts");
+const userRoutes = require("./routes/users.js");
 
 app.use("/api/admins", adminRoutes);
 app.use("/api/categories", categoryRoutes);
@@ -55,6 +56,7 @@ app.use("/api/test-infos", testInfosRouter);
 app.use("/api/uploads", imgUploadRoutes);
 app.use("/api/forms", formRoutes);
 app.use("/api/contacts", contactsRoute);
+app.use("/api/users", userRoutes);
 
 // Listen on all network interfaces (0.0.0.0) instead of just localhost
 app.listen(PORT, "0.0.0.0", () => {

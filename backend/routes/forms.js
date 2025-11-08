@@ -17,7 +17,7 @@ router.post("/", async (req, res) => {
 
     const result = await pool.query(
       `
-      INSERT INTO forms (field, title, form_url link_text, status)
+      INSERT INTO forms (field, title, form_url, link_text, status)
       VALUES ($1, $2, $3, $4, 'active')
       RETURNING *
       `,
