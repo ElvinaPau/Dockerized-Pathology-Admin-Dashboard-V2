@@ -39,14 +39,181 @@ function PreviewPage() {
   const [selectedTest, setSelectedTest] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [mobileSearchTerm, setMobileSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(""); // For forms
+  const [mobileSearchTerm, setMobileSearchTerm] = useState(""); // For categories/tests
+
+  // Focus states for search bars
+  const [isCategorySearchFocused, setIsCategorySearchFocused] = useState(false);
+  const [isTestSearchFocused, setIsTestSearchFocused] = useState(false);
+  const [isFormSearchFocused, setIsFormSearchFocused] = useState(false);
+
+  // Separate search history
+  const [categorySearchHistory, setCategorySearchHistory] = useState([]);
+  const [testSearchHistory, setTestSearchHistory] = useState([]);
+  const [formSearchHistory, setFormSearchHistory] = useState([]);
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
-  // -----------------------------
-  // FETCH CATEGORIES (Main Page)
-  // -----------------------------
+  // History expiry time (in milliseconds) - 7 days
+  const HISTORY_EXPIRY_TIME = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+  // HELPER TO DELETE FROM HISTORY
+  // HELPER TO FILTER EXPIRED ITEMS
+  const filterExpiredHistory = (history) => {
+    const now = Date.now();
+    return history.filter((item) => {
+      if (!item.timestamp) return true; // Keep old items without timestamp
+      return now - item.timestamp < HISTORY_EXPIRY_TIME;
+    });
+  };
+
+  // LOAD SEARCH HISTORY FROM LOCALSTORAGE
+  useEffect(() => {
+    const categoryHistory = JSON.parse(
+      localStorage.getItem("categorySearchHistory") || "[]"
+    );
+    const testHistory = JSON.parse(
+      localStorage.getItem("testSearchHistory") || "[]"
+    );
+    const formHistory = JSON.parse(
+      localStorage.getItem("formSearchHistory") || "[]"
+    );
+
+    // Filter out expired items
+    const filteredCategoryHistory = filterExpiredHistory(categoryHistory);
+    const filteredTestHistory = filterExpiredHistory(testHistory);
+    const filteredFormHistory = filterExpiredHistory(formHistory);
+
+    // Update state
+    setCategorySearchHistory(filteredCategoryHistory);
+    setTestSearchHistory(filteredTestHistory);
+    setFormSearchHistory(filteredFormHistory);
+
+    // Update localStorage if any items were removed
+    if (filteredCategoryHistory.length !== categoryHistory.length) {
+      localStorage.setItem(
+        "categorySearchHistory",
+        JSON.stringify(filteredCategoryHistory)
+      );
+    }
+    if (filteredTestHistory.length !== testHistory.length) {
+      localStorage.setItem(
+        "testSearchHistory",
+        JSON.stringify(filteredTestHistory)
+      );
+    }
+    if (filteredFormHistory.length !== formHistory.length) {
+      localStorage.setItem(
+        "formSearchHistory",
+        JSON.stringify(filteredFormHistory)
+      );
+    }
+  }, []);
+
+  // HELPER TO ADD TO HISTORY
+  const addToHistory = (item, type) => {
+    // Add timestamp to the item
+    const itemWithTimestamp = {
+      ...item,
+      timestamp: Date.now(),
+    };
+
+    let updated;
+    switch (type) {
+      case "category":
+        // Store category object with timestamp
+        updated = [
+          itemWithTimestamp,
+          ...categorySearchHistory.filter((h) => h.id !== item.id),
+        ].slice(0, 10);
+        setCategorySearchHistory(updated);
+        localStorage.setItem("categorySearchHistory", JSON.stringify(updated));
+        break;
+      case "test":
+        // Store test object with timestamp
+        updated = [
+          itemWithTimestamp,
+          ...testSearchHistory.filter((h) => h.id !== item.id),
+        ].slice(0, 10);
+        setTestSearchHistory(updated);
+        localStorage.setItem("testSearchHistory", JSON.stringify(updated));
+        break;
+      case "form":
+        // Store form object with timestamp
+        updated = [
+          itemWithTimestamp,
+          ...formSearchHistory.filter((h) => h.id !== item.id),
+        ].slice(0, 10);
+        setFormSearchHistory(updated);
+        localStorage.setItem("formSearchHistory", JSON.stringify(updated));
+        break;
+      default:
+        break;
+    }
+  };
+
+  // HELPER TO FORMAT TIME AGO
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return "";
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return `${days}d ago`;
+  };
+
+  const deleteFromHistory = (itemId, type, e) => {
+    e.stopPropagation(); // Prevent triggering the item click
+    let updated;
+    switch (type) {
+      case "category":
+        updated = categorySearchHistory.filter((h) => h.id !== itemId);
+        setCategorySearchHistory(updated);
+        localStorage.setItem("categorySearchHistory", JSON.stringify(updated));
+        break;
+      case "test":
+        updated = testSearchHistory.filter((h) => h.id !== itemId);
+        setTestSearchHistory(updated);
+        localStorage.setItem("testSearchHistory", JSON.stringify(updated));
+        break;
+      case "form":
+        updated = formSearchHistory.filter((h) => h.id !== itemId);
+        setFormSearchHistory(updated);
+        localStorage.setItem("formSearchHistory", JSON.stringify(updated));
+        break;
+      default:
+        break;
+    }
+  };
+
+  // HELPER TO CLEAR ALL HISTORY
+  const clearAllHistory = (type, e) => {
+    e.stopPropagation();
+    switch (type) {
+      case "category":
+        setCategorySearchHistory([]);
+        localStorage.removeItem("categorySearchHistory");
+        break;
+      case "test":
+        setTestSearchHistory([]);
+        localStorage.removeItem("testSearchHistory");
+        break;
+      case "form":
+        setFormSearchHistory([]);
+        localStorage.removeItem("formSearchHistory");
+        break;
+      default:
+        break;
+    }
+  };
+
+  // Fetch categories (Main Page)
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -62,9 +229,7 @@ function PreviewPage() {
     fetchCategories();
   }, []);
 
-  // -----------------------------
-  // FETCH FORMS
-  // -----------------------------
+  // Fetch forms
   useEffect(() => {
     const fetchForms = async () => {
       try {
@@ -77,20 +242,24 @@ function PreviewPage() {
     fetchForms();
   }, []);
 
-  // -----------------------------
-  // CLICK CATEGORY: LOAD TESTS
-  // -----------------------------
+  // Click Category: load tests
   const openCategory = async (category) => {
+    // Add to history
+    addToHistory(category, "category");
+
     if (category.id === "fixed-form") {
       // FORM SPECIAL CATEGORY
       setSelectedCategory(category);
       setView("form-table");
+      setMobileSearchTerm(""); // Clear search
+      setSearchTerm(""); // Clear search
       return;
     }
 
     setLoading(true);
     setSelectedCategory(category);
     setView("tests");
+    setMobileSearchTerm(""); // Clear search when opening category
 
     try {
       const res = await axios.get(
@@ -104,11 +273,13 @@ function PreviewPage() {
     }
   };
 
-  // -----------------------------
-  // CLICK TEST: LOAD TEST INFO
-  // -----------------------------
+  // Click Test: Load Test Info
   const openTest = async (test) => {
+    // Add to history
+    addToHistory(test, "test");
+
     setLoading(true);
+    setMobileSearchTerm(""); // Clear search when opening test
     try {
       const res = await axios.get(
         `http://localhost:5001/api/tests/${test.id}?includeinfos=true`
@@ -122,25 +293,25 @@ function PreviewPage() {
     }
   };
 
-  // -----------------------------
-  // BACK BUTTON LOGIC
-  // -----------------------------
+  // Back button
   const goBack = () => {
     if (view === "info") {
       setView("tests");
       setSelectedTest(null);
+      setMobileSearchTerm(""); // Clear search
     } else if (view === "tests") {
       setView("categories");
       setSelectedCategory(null);
+      setMobileSearchTerm(""); // Clear search
     } else if (view === "form-table") {
       setView("categories");
       setSelectedCategory(null);
+      setSearchTerm(""); // Clear search
+      setMobileSearchTerm(""); // Clear search
     }
   };
 
-  // -----------------------------
-  // COMBINED CATEGORIES (with FORM)
-  // -----------------------------
+  // Combined categories (with FORM)
   const allCategories = [
     ...categories,
     {
@@ -156,9 +327,18 @@ function PreviewPage() {
     cat.name.toLowerCase().includes(mobileSearchTerm.toLowerCase())
   );
 
+  // Filter category search history based on input
+  const filteredCategoryHistory = categorySearchHistory.filter((item) =>
+    item.name.toLowerCase().includes(mobileSearchTerm.toLowerCase())
+  );
+
   // Filter tests
   const filteredTests = tests.filter((t) =>
     t.name.toLowerCase().includes(mobileSearchTerm.toLowerCase())
+  );
+
+  const filteredTestHistory = testSearchHistory.filter((item) =>
+    item.name.toLowerCase().includes(mobileSearchTerm.toLowerCase())
   );
 
   // Filter forms
@@ -171,17 +351,22 @@ function PreviewPage() {
     );
   });
 
-  // -----------------------------
+  const filteredFormHistory = formSearchHistory.filter((item) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (item.field && item.field.toLowerCase().includes(term)) ||
+      (item.title && item.title.toLowerCase().includes(term))
+    );
+  });
+
   // PAGE RENDERING
-  // -----------------------------
+
   return (
     <div className={`home-page-content ${isNavExpanded ? "Nav-Expanded" : ""}`}>
       <HomePageHeader />
       <div className="home-title">Preview</div>
 
-      {/* ======================================
-            VIEW 1: CATEGORY LIST
-          ====================================== */}
+      {/* VIEW 1: CATEGORY LIST */}
       {view === "categories" && (
         <div className="prev-categories-list">
           <div className="mobile-app-header">
@@ -191,11 +376,53 @@ function PreviewPage() {
           {/* Search */}
           <input
             type="text"
-            className="mobile-search-bar"
+            className={`mobile-search-bar ${
+              isCategorySearchFocused && filteredCategoryHistory.length > 0
+                ? "has-history"
+                : ""
+            }`}
             placeholder="Search for categories..."
             value={mobileSearchTerm}
             onChange={(e) => setMobileSearchTerm(e.target.value)}
+            onFocus={() => setIsCategorySearchFocused(true)}
+            onBlur={() =>
+              setTimeout(() => setIsCategorySearchFocused(false), 200)
+            }
           />
+          {/* History */}
+          {isCategorySearchFocused && filteredCategoryHistory.length > 0 && (
+            <div className="search-history-box">
+              <div className="search-history-header">
+                <div className="search-history-title">Recent Searches</div>
+                <button
+                  className="clear-history-btn"
+                  onClick={(e) => clearAllHistory("category", e)}
+                  title="Clear all"
+                >
+                  Clear All
+                </button>
+              </div>
+              {filteredCategoryHistory.map((item, i) => (
+                <div
+                  key={i}
+                  className="search-history-item"
+                  onClick={() => {
+                    openCategory(item);
+                    setIsCategorySearchFocused(false);
+                  }}
+                >
+                  <span className="history-item-text">{item.name}</span>
+                  <button
+                    className="delete-history-btn"
+                    onClick={(e) => deleteFromHistory(item.id, "category", e)}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Cards */}
           <div className="mobile-content">
@@ -210,17 +437,13 @@ function PreviewPage() {
                 </div>
               ))
             ) : (
-              <div className="prev-category-card" style={{ opacity: 0.6 }}>
-                <h4>No categories found</h4>
-              </div>
+              <h4 className="no-category-title">No categories found</h4>
             )}
           </div>
         </div>
       )}
 
-      {/* ======================================
-            VIEW 2: TEST LIST IN CATEGORY
-          ====================================== */}
+      {/* VIEW 2: TEST LIST IN CATEGORY */}
       {view === "tests" && (
         <div className="prev-categories-list">
           <div className="mobile-app-header">
@@ -230,13 +453,54 @@ function PreviewPage() {
             <h1 className="mobile-app-title">{selectedCategory?.name}</h1>
           </div>
 
+          {/* Search */}
           <input
             type="text"
-            className="mobile-search-bar"
+            className={`mobile-search-bar ${
+              isTestSearchFocused && filteredTestHistory.length > 0
+                ? "has-history"
+                : ""
+            }`}
             placeholder="Search for tests..."
             value={mobileSearchTerm}
             onChange={(e) => setMobileSearchTerm(e.target.value)}
+            onFocus={() => setIsTestSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsTestSearchFocused(false), 200)}
           />
+          {/* History */}
+          {isTestSearchFocused && filteredTestHistory.length > 0 && (
+            <div className="search-history-box">
+              <div className="search-history-header">
+                <div className="search-history-title">Recent Searches</div>
+                <button
+                  className="clear-history-btn"
+                  onClick={(e) => clearAllHistory("test", e)}
+                  title="Clear all"
+                >
+                  Clear All
+                </button>
+              </div>
+              {filteredTestHistory.map((item, i) => (
+                <div
+                  key={i}
+                  className="search-history-item"
+                  onClick={() => {
+                    openTest(item);
+                    setIsTestSearchFocused(false);
+                  }}
+                >
+                  <span className="history-item-text">{item.name}</span>
+                  <button
+                    className="delete-history-btn"
+                    onClick={(e) => deleteFromHistory(item.id, "test", e)}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="mobile-content">
             {loading ? (
@@ -252,17 +516,13 @@ function PreviewPage() {
                 </div>
               ))
             ) : (
-              <div className="prev-category-card" style={{ opacity: 0.6 }}>
-                <h4>No tests found</h4>
-              </div>
+              <h4 className="no-category-title">No tests found</h4>
             )}
           </div>
         </div>
       )}
 
-      {/* ======================================
-            VIEW 3: FORM TABLE
-          ====================================== */}
+      {/* VIEW 3: FORM TABLE */}
       {view === "form-table" && (
         <div className="prev-categories-list">
           <div className="mobile-app-header">
@@ -272,36 +532,88 @@ function PreviewPage() {
             <h1 className="mobile-app-title">FORM</h1>
           </div>
 
+          {/* Search */}
           <input
             type="text"
-            className="mobile-search-bar"
+            className={`mobile-search-bar ${
+              isFormSearchFocused && filteredFormHistory.length > 0
+                ? "has-history"
+                : ""
+            }`}
             placeholder="Search form..."
-            value={mobileSearchTerm}
-            onChange={(e) => setMobileSearchTerm(e.target.value)}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setIsFormSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsFormSearchFocused(false), 200)}
           />
+          {/* History */}
+          {isFormSearchFocused && filteredFormHistory.length > 0 && (
+            <div className="search-history-box">
+              <div className="search-history-header">
+                <div className="search-history-title">Recent Searches</div>
+                <button
+                  className="clear-history-btn"
+                  onClick={(e) => clearAllHistory("form", e)}
+                  title="Clear all"
+                >
+                  Clear All
+                </button>
+              </div>
+              {filteredFormHistory.map((item, i) => (
+                <div
+                  key={i}
+                  className="search-history-item"
+                  onClick={() => {
+                    setSearchTerm(item.field || item.title || "");
+                    setIsFormSearchFocused(false);
+                  }}
+                >
+                  <span className="history-item-text">
+                    {item.field || item.title}
+                  </span>
+                  <button
+                    className="delete-history-btn"
+                    onClick={(e) => deleteFromHistory(item.id, "form", e)}
+                    title="Remove"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
-          <div className="mobile-content" style={{ padding: '16px', overflowX: 'auto' }}>
-            <table className="form-table" style={{ width: '100%', fontSize: '14px' }}>
+          <div
+            className="mobile-content"
+            style={{ padding: "16px", overflowX: "auto" }}
+          >
+            <table
+              className="form-table"
+              style={{ width: "100%", fontSize: "14px" }}
+            >
               <thead>
                 <tr>
-                  <th style={{ width: '1px', padding: '5px' }}>No</th>
-                  <th style={{ width: '30%' }}>Field</th>
-                  <th style={{ width: '40%' }}>Form Title</th>
-                  <th style={{ width: '30%' }}>Form</th>
+                  <th style={{ width: "1px", padding: "5px" }}>No</th>
+                  <th style={{ width: "30%" }}>Field</th>
+                  <th style={{ width: "40%" }}>Form Title</th>
+                  <th style={{ width: "30%" }}>Form</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredForms.length > 0 ? (
                   filteredForms.map((form, index) => (
                     <tr key={form.id}>
-                      <td style={{ textAlign: 'center' , padding: '0px' }}>{index + 1}</td>
-                      <td style={{ wordBreak: 'break-word' }}>{form.field}</td>
-                      <td style={{ wordBreak: 'break-word' }}>{form.title}</td>
-                      <td style={{ wordBreak: 'break-word' }}>
+                      <td style={{ textAlign: "center", padding: "0px" }}>
+                        {index + 1}
+                      </td>
+                      <td style={{ wordBreak: "break-word" }}>{form.field}</td>
+                      <td style={{ wordBreak: "break-word" }}>{form.title}</td>
+                      <td style={{ wordBreak: "break-word" }}>
                         <a
                           href={form.form_url}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => addToHistory(form, "form")}
                         >
                           {form.link_text || "Open Form"}
                         </a>
@@ -324,9 +636,7 @@ function PreviewPage() {
         </div>
       )}
 
-      {/* ======================================
-            VIEW 4: TEST INFO (Separate Cards)
-          ====================================== */}
+      {/* VIEW 4: TEST INFO */}
       {view === "info" && selectedTest && (
         <div className="prev-categories-list">
           <div className="mobile-app-header">
@@ -338,8 +648,7 @@ function PreviewPage() {
             </h1>
           </div>
 
-          {/* Test Info Cards */}
-          <div className="mobile-content" style={{ padding: '16px' }}>
+          <div className="mobile-content" style={{ padding: "16px" }}>
             {loading ? (
               <p>Loading...</p>
             ) : selectedTest.infos && selectedTest.infos.length > 0 ? (
@@ -361,8 +670,11 @@ function PreviewPage() {
 
                 return (
                   <div key={info.id} className="test-info-card">
-                    {d.title && <h2 className="info-card-title">{sanitizeData(d.title)}</h2>}
-
+                    {d.title && (
+                      <h2 className="info-card-title">
+                        {sanitizeData(d.title)}
+                      </h2>
+                    )}
                     {d.labInCharge && (
                       <div className="info-card-section">
                         <strong>Lab In-Charge:</strong>
@@ -370,7 +682,6 @@ function PreviewPage() {
                         {sanitizeData(d.labInCharge)}
                       </div>
                     )}
-
                     {(d.specimenType || d.otherSpecimen) && (
                       <div className="info-card-section">
                         <strong>Specimen Type:</strong>
@@ -405,7 +716,6 @@ function PreviewPage() {
                           ))}
                       </div>
                     )}
-
                     {d.form && (d.form.text || d.form.url) && (
                       <div className="info-card-section">
                         <strong>Form:</strong> <br />
@@ -422,7 +732,6 @@ function PreviewPage() {
                         )}
                       </div>
                     )}
-
                     {d.TAT && (
                       <div className="info-card-section">
                         <strong>TAT:</strong>
@@ -437,7 +746,6 @@ function PreviewPage() {
                         />
                       </div>
                     )}
-
                     {imageSrc && (
                       <div className="info-card-section">
                         <strong>Container:</strong>
@@ -449,13 +757,11 @@ function PreviewPage() {
                         />
                       </div>
                     )}
-
                     {d.containerLabel && (
                       <div className="info-card-section">
                         {sanitizeData(d.containerLabel)}
                       </div>
                     )}
-
                     {d.sampleVolume && (
                       <div className="info-card-section">
                         <strong>Sample Volume:</strong>
@@ -470,14 +776,12 @@ function PreviewPage() {
                         />
                       </div>
                     )}
-
                     {d.description && (
                       <div
                         className="info-card-section rich-text-content"
                         dangerouslySetInnerHTML={{ __html: d.description }}
                       />
                     )}
-
                     {d.remark && (
                       <div className="info-card-section">
                         <strong>Remark:</strong>

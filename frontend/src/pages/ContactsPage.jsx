@@ -123,7 +123,7 @@ function ContactsPage() {
       }
 
       alert("Contacts saved successfully!");
-      setIsPreviewMode(true); // 👈 show preview after save
+      setIsPreviewMode(true); // show preview after save
     } catch (err) {
       console.error("Error saving contacts:", err);
       alert("Failed to save contacts.");
@@ -197,7 +197,7 @@ function ContactsPage() {
                 + Add Contact
               </button>
               <button className="save-all-btn" onClick={handleSaveAll}>
-                💾 Save & Preview
+                Save & Preview
               </button>
             </div>
           </div>
@@ -251,7 +251,7 @@ function ContactsPage() {
           {/* Edit button at bottom */}
           <div className="preview-edit-btn-wrapper">
             <button
-              className="edit-btn"
+              className="save-all-btn"
               onClick={() => setIsPreviewMode(false)}
             >
               Edit Contacts

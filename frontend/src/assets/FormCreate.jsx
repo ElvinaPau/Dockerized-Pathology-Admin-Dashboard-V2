@@ -109,6 +109,7 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
               }}
               classNamePrefix="react-select"
               placeholder="Select"
+              required
             />
 
             {/* Show textarea if Others selected */}
@@ -122,6 +123,7 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
                   resize: "vertical",
                   marginTop: "8px",
                   width: "100%",
+                  required,
                 }}
               />
             )}
@@ -154,10 +156,11 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
               value={formData.link_text}
               onChange={(e) => handleChange("link_text", e.target.value)}
               placeholder="e.g. Borang A"
+              required
             />
           </label>
 
-          <div className="button-row">
+          <div className="input-card-buttons">
             <button type="submit">{formToEdit ? "Update" : "Save"}</button>
             <button type="button" onClick={onClose}>
               Cancel

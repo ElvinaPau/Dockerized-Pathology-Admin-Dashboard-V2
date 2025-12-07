@@ -94,6 +94,7 @@ function AdminHomePage() {
               ...formCategory,
               testCount: forms.length,
               lastUpdated: lastUpdated,
+              fixed: true,
             });
         }
 
@@ -103,7 +104,7 @@ function AdminHomePage() {
       }
     };
     fetchCategories();
-  }, [forms]);
+  }, [forms, lastUpdatedForm]);
 
   // Fetch admin count
   useEffect(() => {
@@ -142,18 +143,28 @@ function AdminHomePage() {
         (a, b) => (a.position ?? a.id) - (b.position ?? b.id)
       );
 
+      const lastUpdated = lastUpdatedForm
+        ? new Date(lastUpdatedForm).toLocaleDateString()
+        : "N/A";
+
       const formCategory = sorted.find((cat) => cat.name === "FORM");
       if (!formCategory) {
         sorted.push({
           id: "fixed-form",
           name: "FORM",
-          testCount: 0,
+          testCount: forms.length,
+          lastUpdated: lastUpdated,
           fixed: true,
         });
       } else {
         sorted = sorted
           .filter((cat) => cat.name !== "FORM")
-          .concat(formCategory);
+          .concat({
+            ...formCategory,
+            testCount: forms.length,
+            lastUpdated: lastUpdated,
+            fixed: true,
+          });
       }
 
       setCategories(sorted);
@@ -186,10 +197,13 @@ function AdminHomePage() {
     }
   };
 
-  // Drag-and-drop reorder
+  // Drag-and-drop reorder - FIXED
   const handleDragEnd = async (result) => {
     const { source, destination } = result;
     if (!destination) return;
+
+    // Prevent any action if source and destination are the same
+    if (source.index === destination.index) return;
 
     const formCat = categories.find((c) => c.fixed);
     const movable = categories.filter((c) => !c.fixed);
@@ -213,6 +227,10 @@ function AdminHomePage() {
       console.error("Error reordering categories:", err.message);
     }
   };
+
+  // Separate movable and fixed categories for proper rendering
+  const movableCategories = categories.filter((c) => !c.fixed);
+  const fixedCategory = categories.find((c) => c.fixed);
 
   return (
     <div className={`home-page-content ${isNavExpanded ? "Nav-Expanded" : ""}`}>
@@ -242,85 +260,91 @@ function AdminHomePage() {
       {/* Categories */}
       <div className="home-title">Categories</div>
       <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="categories">
+        <Droppable droppableId="categories" direction="horizontal">
           {(provided) => (
             <div
               className="categories-section"
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {categories.map((cat, index) =>
-                cat.fixed ? (
-                  // Fixed “FORM” card (not draggable)
-                  <div key={cat.id} style={{ opacity: 0.9 }}>
-                    <CatCard
-                      id={cat.id}
-                      title={cat.name}
-                      count={cat.testCount}
-                      icon={<GrTest />}
-                      lastUpdated={
-                        cat.lastUpdated || new Date().toLocaleDateString()
-                      }
-                      onClick={() => navigate(`/categories/${cat.id}`)}
-                      onDelete={() =>
-                        alert("The 'FORM' category cannot be deleted.")
-                      }
-                    />
-                  </div>
-                ) : (
-                  <Draggable
-                    key={cat.id}
-                    draggableId={cat.id.toString()}
-                    index={index}
-                  >
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
+              {/* Render only movable categories as draggable */}
+              {movableCategories.map((cat, index) => (
+                <Draggable
+                  key={cat.id}
+                  draggableId={cat.id.toString()}
+                  index={index}
+                >
+                  {(provided, snapshot) => (
+                    <div
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      style={{
+                        ...provided.draggableProps.style,
+                        display: "inline-block",
+                      }}
+                    >
+                      <CatCard
+                        id={cat.id}
+                        title={cat.name}
+                        count={cat.testCount}
+                        icon={<GrTest />}
+                        lastUpdated={
+                          cat.lastUpdated || new Date().toLocaleDateString()
+                        }
+                        onClick={() => navigate(`/categories/${cat.id}`)}
+                        onDelete={() => handleDeleteCategory(cat.id, cat.name)}
+                        className={cat.id === highlightId ? "highlight" : ""}
                         style={{
-                          ...provided.draggableProps.style,
                           opacity: snapshot.isDragging ? 0.5 : 1,
-                          cursor: "grab",
+                          cursor: snapshot.isDragging ? "grabbing" : "grab",
                         }}
-                      >
-                        <CatCard
-                          id={cat.id}
-                          title={cat.name}
-                          count={cat.testCount}
-                          icon={<GrTest />}
-                          lastUpdated={
-                            cat.lastUpdated || new Date().toLocaleDateString()
-                          }
-                          onClick={() => navigate(`/categories/${cat.id}`)}
-                          onDelete={() =>
-                            handleDeleteCategory(cat.id, cat.name)
-                          }
-                          className={cat.id === highlightId ? "highlight" : ""}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                )
-              )}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
 
               {provided.placeholder}
 
+              {/* Fixed "FORM" category (not draggable) */}
+              {fixedCategory && (
+                <div style={{ display: "inline-block", opacity: 0.9 }}>
+                  <CatCard
+                    id={fixedCategory.id}
+                    title={fixedCategory.name}
+                    count={fixedCategory.testCount}
+                    icon={<GrTest />}
+                    lastUpdated={
+                      fixedCategory.lastUpdated ||
+                      new Date().toLocaleDateString()
+                    }
+                    onClick={() => navigate(`/categories/${fixedCategory.id}`)}
+                    onDelete={() =>
+                      alert("The 'FORM' category cannot be deleted.")
+                    }
+                  />
+                </div>
+              )}
+
               {/* Add New Category */}
               {showInput && (
-                <NewCatInput
-                  title="Add New Category"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  onSubmit={handleSubmit}
-                  onCancel={() => setShowInput(false)}
-                  placeholder="Enter category name"
-                />
+                <div style={{ display: "inline-block" }}>
+                  <NewCatInput
+                    title="Create New Category"
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    onSubmit={handleSubmit}
+                    onCancel={() => setShowInput(false)}
+                    placeholder="Enter category name"
+                  />
+                </div>
               )}
 
               <div
                 className="cat-card add-category"
                 onClick={() => setShowInput(true)}
+                style={{ display: "inline-block" }}
               >
                 <p>Add New Category</p>
                 <button

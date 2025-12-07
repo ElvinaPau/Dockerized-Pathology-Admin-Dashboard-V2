@@ -585,7 +585,7 @@ function AddTabForm() {
               className="save-all-btn"
               onClick={handleSaveAll}
             >
-              💾 Save & Preview
+              Save & Preview
             </button>
           </div>
         )}

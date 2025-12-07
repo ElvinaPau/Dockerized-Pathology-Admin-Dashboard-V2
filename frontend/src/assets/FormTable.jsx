@@ -76,7 +76,7 @@ const FormTable = () => {
   };
 
   const handlePermanentDelete = async (id) => {
-    if (!window.confirm("This will permanently delete the form. Continue?"))
+    if (!window.confirm("Are you sure you want to permanently delete this form?"))
       return;
     await axios.delete(`${API_BASE}/api/forms/${id}`);
     fetchForms();
@@ -99,7 +99,7 @@ const FormTable = () => {
               </button>
             ))}
           </div>
-          <button className="add-btn" onClick={() => setShowCreate(true)}>
+          <button className="add-button" onClick={() => setShowCreate(true)}>
             + Add Form
           </button>
         </div>
@@ -180,7 +180,7 @@ const FormTable = () => {
                             />
                             <MdDeleteOutline
                               className="icon-delete"
-                              title="Soft Delete"
+                              title="Delete"
                               onClick={() => handleSoftDelete(form.id)}
                             />
                           </>
