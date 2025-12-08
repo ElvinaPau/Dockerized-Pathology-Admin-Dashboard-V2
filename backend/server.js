@@ -12,17 +12,21 @@ const PORT = process.env.PORT || 5001;
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // React app
+      "http://localhost:5173", // React app local
       "http://10.167.177.31:5173", // React app via IP
       "http://localhost:*", // Any localhost port
       "http://10.167.177.31:*", // Any port on your IP (for Flutter)
-      "https://htaa-admin-dashboard-v2.vercel.app", // deployed frontend
+      "https://htaa-admin-dashboard-v2.vercel.app", // OLD deployed frontend
+      "https://pathology-admin-dashboard-v2.vercel.app", // NEW deployed frontend
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// Handle preflight requests
+app.options('*', cors());
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
