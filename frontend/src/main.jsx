@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { NavigationProvider } from "./context/NavigationContext";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { injectSpeedInsights } from "@vercel/speed-insights";
 
 // Pages
 import AdminLogin from "./pages/AdminLogin";
@@ -28,6 +29,8 @@ import AdminTable from "./assets/AdminTable";
 import CategoryDetails from "./assets/CategoryDetails";
 import FixedFormPage from "./assets/FixedFormPage";
 import FormCreate from "./assets/FormCreate";
+
+injectSpeedInsights();
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
