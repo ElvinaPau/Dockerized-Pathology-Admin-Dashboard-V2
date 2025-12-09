@@ -13,9 +13,9 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // React app local
-      "http://10.167.177.31:5173", // React app via IP
+      "http://10.163.184.107:5173", // React app via IP
       "http://localhost:*", // Any localhost port
-      "http://10.167.177.31:*", // Any port on your IP (for Flutter)
+      "http://10.163.184.107:*", // Any port on your IP (for Flutter)
       "https://htaa-admin-dashboard-v2.vercel.app", // OLD deployed frontend
       "https://pathology-admin-dashboard-v2.vercel.app", // NEW deployed frontend
     ],
@@ -66,5 +66,5 @@ app.use("/api/bookmarks", bookmarksRouter);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Local: http://localhost:${PORT}`);
-  console.log(`Network: http://10.167.177.31:${PORT}`);
+  console.log(`Network: http://10.163.184.107:${PORT}`);
 });

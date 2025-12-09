@@ -265,7 +265,9 @@ function PreviewPage() {
       const res = await axios.get(
         `${API_BASE}/api/tests?category_id=${category.id}`
       );
-      setTests(res.data);
+      // Filter out soft-deleted tests
+      const activeTests = res.data.filter((t) => t.status !== "deleted");
+      setTests(activeTests);
     } catch (err) {
       console.error("Error fetching tests:", err.message);
     } finally {
