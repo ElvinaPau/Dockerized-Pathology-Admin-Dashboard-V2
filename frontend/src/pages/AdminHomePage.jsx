@@ -348,7 +348,7 @@ function AdminHomePage() {
               >
                 <p>Add New Category</p>
                 <button
-                  className="create-btn"
+                  className="create-new-btn"
                   onClick={() => setShowInput(true)}
                 >
                   + Create New

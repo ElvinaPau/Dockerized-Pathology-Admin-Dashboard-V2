@@ -95,7 +95,23 @@
   cursor: pointer;
 }
 
+.create-new-btn {
+margin-left: 9px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .create-btn:hover {
+  background: #7c3aed;
+  transform: translateY(-2px);
+}
+
+.create-new-btn:hover {
   background: #7c3aed;
   transform: translateY(-2px);
 }
