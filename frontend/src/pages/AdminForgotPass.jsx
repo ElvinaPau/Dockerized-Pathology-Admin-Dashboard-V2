@@ -39,7 +39,9 @@ function AdminForgotPassword() {
       }
 
       // If valid, request reset link
-      const res = await axios.post("/api/admins/forgot-password", { email });
+      const res = await axios.post(`${API_BASE}/api/admins/forgot-password`, {
+        email,
+      });
       setStatusMessage(
         res.data.message ||
           "If your email exists, you’ll receive a reset link shortly."
@@ -88,7 +90,11 @@ function AdminForgotPassword() {
               />
             </div>
 
-            {statusMessage && <p className="error-text" style={{ color: "red" }}>{statusMessage}</p>}
+            {statusMessage && (
+              <p className="error-text" style={{ color: "red" }}>
+                {statusMessage}
+              </p>
+            )}
 
             <button type="submit" className="forgotpass-btn" disabled={loading}>
               {loading ? "Sending..." : "SEND RESET LINK"}
