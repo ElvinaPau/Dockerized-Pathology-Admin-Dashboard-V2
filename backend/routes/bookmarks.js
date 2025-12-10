@@ -1,17 +1,18 @@
 const express = require("express");
-const { Pool } = require("pg");
-const dotenv = require("dotenv");
+const pool = require("../db");
+// const { Pool } = require("pg");
+// const dotenv = require("dotenv");
 
-dotenv.config();
+// dotenv.config();
 const router = express.Router();
 
-const pool = new Pool({
-  user: process.env.DB_USER || "postgres",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "htaa_db",
-  password: process.env.DB_PASSWORD || "your_password",
-  port: process.env.DB_PORT || 5432,
-});
+// const pool = new Pool({
+//   user: process.env.DB_USER || "postgres",
+//   host: process.env.DB_HOST || "localhost",
+//   database: process.env.DB_NAME || "htaa_db",
+//   password: process.env.DB_PASSWORD || "your_password",
+//   port: process.env.DB_PORT || 5432,
+// });
 
 // Get all bookmarks for a user
 router.get("/user/:google_id", async (req, res) => {
