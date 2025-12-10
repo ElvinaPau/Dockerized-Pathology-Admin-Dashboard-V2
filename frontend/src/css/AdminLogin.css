@@ -159,7 +159,7 @@ a:hover {
 }
 
 .login-btn:disabled {
-  background: #6c757d;
+  background: #8b5cf6;
   cursor: not-allowed;
   transform: none;
 }
