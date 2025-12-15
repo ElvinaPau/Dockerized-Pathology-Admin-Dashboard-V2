@@ -48,8 +48,8 @@
 
 .logout-menu {
   position: absolute;
+  top: -10;
   right: 0;
-  margin-top: 8px;
 }
 
 .logout-button {
