@@ -32,13 +32,13 @@ router.post("/", async (req, res) => {
 });
 
 /**
- * READ all forms
+ * READ all forms (excluding deleted ones)
  */
-// backend/routes/forms.js
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT * FROM forms
+      WHERE status != 'deleted'
       ORDER BY id ASC
     `);
     res.json(result.rows);
