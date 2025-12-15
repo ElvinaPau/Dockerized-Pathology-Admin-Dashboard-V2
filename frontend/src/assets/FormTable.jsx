@@ -13,17 +13,20 @@ const FormTable = () => {
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5001";
 
-  const fetchForms = async () => {
+  const fetchAllForms = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/api/forms`);
-      setForms(res.data);
+      const [activeForms, deletedForms] = await Promise.all([
+        axios.get(`${API_BASE}/api/forms`).then((res) => res.data),
+        axios.get(`${API_BASE}/api/forms/deleted`).then((res) => res.data),
+      ]);
+      setForms([...activeForms, ...deletedForms]);
     } catch (err) {
       console.error("Error fetching forms:", err.message);
     }
   };
 
   useEffect(() => {
-    fetchForms();
+    fetchAllForms();
   }, []);
 
   const isRecent = (updated_at) => {
@@ -66,20 +69,34 @@ const FormTable = () => {
 
   const handleSoftDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this form?")) return;
-    await axios.put(`${API_BASE}/api/forms/${id}/delete`);
-    fetchForms();
+    try {
+      await axios.put(`${API_BASE}/api/forms/${id}/delete`);
+      fetchAllForms(); // Changed from fetchForms()
+    } catch (err) {
+      console.error("Error deleting form:", err.message);
+    }
   };
 
   const handleRecover = async (id) => {
-    await axios.put(`${API_BASE}/api/forms/${id}/restore`);
-    fetchForms();
+    try {
+      await axios.put(`${API_BASE}/api/forms/${id}/restore`);
+      fetchAllForms(); // Changed from fetchForms()
+    } catch (err) {
+      console.error("Error restoring form:", err.message);
+    }
   };
 
   const handlePermanentDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to permanently delete this form?"))
+    if (
+      !window.confirm("Are you sure you want to permanently delete this form?")
+    )
       return;
-    await axios.delete(`${API_BASE}/api/forms/${id}`);
-    fetchForms();
+    try {
+      await axios.delete(`${API_BASE}/api/forms/${id}`);
+      fetchAllForms(); // Changed from fetchForms()
+    } catch (err) {
+      console.error("Error permanently deleting form:", err.message);
+    }
   };
 
   return (
@@ -203,7 +220,7 @@ const FormTable = () => {
       {showCreate && (
         <FormCreate
           onClose={() => setShowCreate(false)}
-          onSuccess={fetchForms}
+          onSuccess={fetchAllForms}
         />
       )}
 
@@ -213,7 +230,7 @@ const FormTable = () => {
           onClose={() => setFormToEdit(null)}
           onSuccess={() => {
             setFormToEdit(null);
-            fetchForms();
+            fetchAllForms();
           }}
         />
       )}

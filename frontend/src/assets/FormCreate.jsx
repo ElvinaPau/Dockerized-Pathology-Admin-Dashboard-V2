@@ -119,11 +119,11 @@ function FormCreate({ onClose, onSuccess, formToEdit }) {
                 onChange={(e) => handleChange("otherField", e.target.value)}
                 placeholder="Please specify other field(s)..."
                 rows={3}
+                required
                 style={{
                   resize: "vertical",
                   marginTop: "8px",
                   width: "100%",
-                  required,
                 }}
               />
             )}
