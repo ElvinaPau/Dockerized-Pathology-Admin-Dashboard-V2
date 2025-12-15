@@ -19,8 +19,17 @@ function HomePageHeader() {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate("/login");
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    if (confirmLogout) {
+      //Remove token from storage
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
+
+      //Redirect to login
+      navigate("/");
+    }
   };
 
   // Close menu when clicking outside
