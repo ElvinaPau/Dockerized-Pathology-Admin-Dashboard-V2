@@ -25,29 +25,37 @@
 
 // module.exports = { sendEmail };
 
-const { Resend } = require('resend');
+const sgMail = require("@sendgrid/mail");
 require("dotenv").config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Set API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
   try {
-    const { data, error } = await resend.emails.send({
-      from: 'HTAAQ Admin <onboarding@resend.dev>',
-      to,
-      subject,
-      html,
-    });
+    const msg = {
+      to: to,
+      from: {
+        email: process.env.SENDER_EMAIL,
+        name: "HTAAQ Admin",
+      },
+      subject: subject,
+      html: html,
+    };
 
-    if (error) {
-      console.error("Resend error:", error);
-      return { success: false, error };
+    const response = await sgMail.send(msg);
+    console.log("Email sent successfully to:", to);
+    console.log("SendGrid Response:", response[0].statusCode);
+
+    return { success: true, messageId: response[0].headers["x-message-id"] };
+  } catch (err) {
+    console.error("Email sending failed:");
+    console.error("Error:", err.message);
+
+    if (err.response) {
+      console.error("SendGrid Error Body:", err.response.body);
     }
 
-    console.log("Email sent successfully:", data.id);
-    return { success: true, data };
-  } catch (err) {
-    console.error("Email sending failed:", err);
     return { success: false, error: err.message };
   }
 };
