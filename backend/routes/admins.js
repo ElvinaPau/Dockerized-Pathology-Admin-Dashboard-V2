@@ -195,8 +195,8 @@ router.post("/login", async (req, res) => {
     // Send refresh token as secure HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // set to true in production (HTTPS)
-      sameSite: "Strict",
+      secure: true, // set to true in production (HTTPS)
+      sameSite: "none",
       maxAge: 8 * 60 * 60 * 1000, // 10 minutes
     });
 
@@ -254,8 +254,8 @@ router.post("/refresh", (req, res) => {
       // Replace old refresh token with new one in cookie
       res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: false, // true in production
-        sameSite: "Strict",
+        secure: true, // true in production
+        sameSite: "none",
         maxAge: 8 * 60 * 60 * 1000, // 10 minutes
       });
 
@@ -268,8 +268,8 @@ router.post("/refresh", (req, res) => {
 router.post("/logout", (req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
-    secure: false, // true in production
-    sameSite: "Strict",
+    secure: true, // true in production
+    sameSite: "none",
   });
   res.json({ message: "Logged out successfully" });
 });
