@@ -120,6 +120,7 @@ function LabTestForm({ fields = {}, setFields, onRemove, isFirst }) {
                 <option value="Integrated">Integrated</option>
                 <option value="Chemical Pathology">Chemical Pathology</option>
                 <option value="Haematology">Haematology</option>
+                <option value="Outsource">Outsource</option>
               </select>
             </div>
 
