@@ -62,7 +62,13 @@ const TestTable = () => {
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     return matchesTab && matchesSearch;
-  });
+  })
+  .sort((a, b) => {
+    if (test.name === "Introduction") {
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    }
+    return 0;
+  });;
 
   // Actions
   const handleSoftDelete = async (id) => {
