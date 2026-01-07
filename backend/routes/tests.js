@@ -89,13 +89,14 @@ router.get("/", async (req, res) => {
     }
 
     query += `
-      ORDER BY
-        CASE 
-          WHEN c.name = 'Introduction' THEN t.created_at
-          ELSE NULL
-        END ASC,
-        t.name ASC
-    `;
+  ORDER BY
+    CASE 
+      WHEN c.name NOT IN ('List of Test (Inhouse)', 'List of Test (Outsource)')
+        THEN t.created_at
+      ELSE NULL
+    END ASC,
+    t.name ASC
+`;
 
     const result = await pool.query(query, values);
     res.json(result.rows);
