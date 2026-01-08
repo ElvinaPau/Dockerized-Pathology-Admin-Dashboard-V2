@@ -209,7 +209,7 @@ function ContactsPage() {
           </div>
 
           {/* Vertical card preview */}
-          <div className="preview-vertical-cards">
+          <div className="preview-cards-container">
             {contacts.length > 0 ? (
               contacts.map((contact, index) => {
                 const c = contact.fields || {};
@@ -221,20 +221,20 @@ function ContactsPage() {
                     : null;
 
                 return (
-                  <div key={index} className="preview-contact-card">
+                  <div key={index} className="preview-info-card">
                     {c.title?.trim() && (
-                      <h2 className="card-title">{c.title}</h2>
+                      <h2 className="preview-card-title">{c.title}</h2>
                     )}
 
                     {c.description && (
                       <div
-                        className="card-description rich-text-content"
+                        className="preview-card-section rich-text-content"
                         dangerouslySetInnerHTML={{ __html: c.description }}
                       />
                     )}
 
                     {imageSrc && (
-                      <div className="card-image">
+                      <div className="preview-card-section">
                         <img
                           src={imageSrc}
                           alt="contact"
