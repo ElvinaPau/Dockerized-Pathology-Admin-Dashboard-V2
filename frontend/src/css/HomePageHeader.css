@@ -1,0 +1,128 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu {
+  border-radius: 8px;
+  margin-bottom: 5px;
+  margin-left: 28px;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.htaaq-logo {
+  padding: 2px;
+  border-radius: 8px;
+  max-width: 100px;
+  height: 50px;
+  margin-left: 30px;
+  cursor: pointer;
+}
+
+.username {
+  color: #000;
+  margin-right: 30px;
+}
+.username-container {
+  position: relative;
+}
+
+.username {
+  cursor: pointer;
+  user-select: none;
+}
+
+.username:hover {
+  opacity: 0.8;
+}
+
+.logout-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+}
+
+.logout-button {
+  padding: 10px 20px;
+  margin-right: 30px;
+  border: none;
+  background: #8b5cf6;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.logout-button:hover {
+  background: #7c3aed;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .search-wrapper {
+    margin-right: 50px;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .menu {
+    margin-left: 15px;
+  }
+
+  .htaaq-logo {
+    margin-left: 15px;
+    max-width: 80px;
+    height: 40px;
+  }
+
+  .search-wrapper {
+    margin-right: 15px;
+    max-width: 250px;
+  }
+
+  .username {
+    margin-right: 15px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    height: 60px;
+  }
+
+  .search-wrapper {
+    max-width: 180px;
+  }
+
+  .htaaq-logo {
+    max-width: 70px;
+    height: 35px;
+  }
+
+  .menu {
+    width: 26px;
+    height: 26px;
+  }
+
+  .username {
+    font-size: 12px;
+    margin-right: 10px;
+  }
+}
+
+@media (max-width: 360px) {
+  .search-wrapper {
+    display: none;
+  }
+}

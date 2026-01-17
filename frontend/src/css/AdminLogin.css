@@ -1,0 +1,189 @@
+.admin-login-container {
+  display: flex;
+  flex-direction: row;
+  height: 98vh;
+  width: 99vw;
+}
+
+.admin-htaaq-logo-image-container {
+  flex: 1;
+  display: flex;
+  background: #f6f1fb;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+}
+
+.htaaq-logo-image {
+  width: 50%;
+  max-width: 450px;
+  object-fit: contain;
+}
+
+.admin-login-divider {
+  width: 1px;
+  height: 80%;
+  background-color: #cfd8e6;
+  align-self: center;
+}
+
+.admin-login-form-container {
+  flex: 1.5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.admin-login-bg {
+  width: 100%;
+  max-width: 420px;
+  background-color: #fff;
+  padding: 3rem;
+  border-radius: 8px;
+  box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e3e8ef;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.admin-login-bg h2 {
+  font-weight: 600;
+  margin-top: 0%;
+  margin-bottom: 0%;
+}
+
+.login-des {
+  color: #444;
+  font-size: 0.95rem;
+}
+
+.login-form-text {
+  margin-top: 30px;
+}
+
+label.required::after {
+  content: " *";
+  color: red;
+}
+
+.input-textbox {
+  margin-top: 5px;
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  box-sizing: border-box;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+  border-radius: 8px;
+  background: #fff;
+  transition: 0.2s ease;
+}
+
+.input-textbox:focus {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+.password-container {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.eye-icon {
+  margin-top: 8px;
+  font-size: 22px;
+  color: #707070;
+}
+
+.eye-icon:hover {
+  color: #000000;
+}
+
+.error-text {
+  color: #d9534f;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.login-btn {
+  margin-top: 35px;
+  width: 100%;
+  height: 45px;
+  background: #8b5cf6;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.login-btn:hover {
+  background: #7c3aed;
+  transform: translateY(-2px);
+}
+
+.login-btn:disabled {
+  background: #8b5cf6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 768px) {
+  .admin-login-container {
+    flex-direction: column;
+    padding: 15px;
+  }
+
+  .admin-login-divider {
+    display: none;
+  }
+
+  .admin-htaaq-logo-image-container {
+    margin-top: 20px;
+  }
+
+  .htaaq-logo-image {
+    width: 60%;
+  }
+
+  .admin-login-bg {
+    margin-top: 25px;
+    padding: 2rem;
+  }
+}

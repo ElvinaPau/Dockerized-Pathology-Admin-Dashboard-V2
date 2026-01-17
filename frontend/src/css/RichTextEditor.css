@@ -1,0 +1,51 @@
+.editor-wrapper {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin: 10px auto;
+  padding: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.editor-wrapper:focus-within {
+  outline: none;
+  border-color: #8b5cf6;
+}
+
+.editor-container {
+  cursor: text;
+}
+
+.ProseMirror {
+  outline: none;
+  padding: 10px;
+  min-height: 100px;
+}
+
+.ProseMirror p {
+  margin: 0 0 10px 0;
+}
+
+.ProseMirror img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 10px 0;
+}
+
+.editor-container ol li::marker {
+  font-size: 1.2em;
+  color: #000;
+}
+
+/* Remove default padding/margin from lists */
+/* .ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 0;
+  margin-left: 0;
+  list-style-position: outside;
+}
+
+.ProseMirror li {
+  margin-left: 10px;
+} */
